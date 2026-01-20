@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  # Pin to specific sdk-rust release version
+  # Update this when upgrading to a new FFI version
+  FFI_VERSION: v0.1.5
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Download native libraries from sdk-rust release
+        run: ./bin/download-ffi.sh ${{ env.FFI_VERSION }} linux-x86_64
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Lint with ruff
+        run: uv run ruff check flovyn tests
+
+      - name: Format check with ruff
+        run: uv run ruff format --check flovyn tests
+
+      - name: Type check with mypy
+        run: uv run mypy flovyn
+
+      - name: Run unit tests
+        run: uv run pytest tests/unit -v --tb=short
+
+  e2e-test:
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 30
+    continue-on-error: true # E2E tests can be flaky, don't block the workflow
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Download native libraries from sdk-rust release
+        run: ./bin/download-ffi.sh ${{ env.FFI_VERSION }} linux-x86_64
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Login to Scaleway Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: rg.fr-par.scw.cloud/flovyn
+          username: nologin
+          password: ${{ secrets.SCW_SECRET_KEY }}
+
+      - name: Pull Flovyn Server image
+        run: docker pull rg.fr-par.scw.cloud/flovyn/flovyn-server:latest
+
+      - name: Run E2E tests
+        run: uv run pytest tests/e2e -v --tb=short
+        env:
+          FLOVYN_E2E_ENABLED: "1"
+          FLOVYN_E2E_USE_DEV_INFRA: "1"
+          FLOVYN_SERVER_IMAGE: rg.fr-par.scw.cloud/flovyn/flovyn-server
