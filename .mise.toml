@@ -1,0 +1,48 @@
+[tasks.test]
+description = "Run unit tests"
+run = "uv run pytest tests/unit/ -v"
+
+[tasks."test:e2e"]
+description = "Run E2E tests (requires Docker)"
+run = "uv run pytest tests/e2e/ -v -m e2e --timeout=180"
+
+[tasks."test:all"]
+description = "Run all tests (unit + E2E)"
+run = "uv run pytest tests/ -v -m '' --timeout=180"
+
+[tasks.lint]
+description = "Run linter"
+run = "uv run ruff check ."
+
+[tasks."lint:fix"]
+description = "Run linter with auto-fix"
+run = "uv run ruff check --fix ."
+
+[tasks.format]
+description = "Format code"
+run = "uv run ruff format ."
+
+[tasks."format:check"]
+description = "Check code formatting"
+run = "uv run ruff format --check ."
+
+[tasks.typecheck]
+description = "Run type checker"
+run = "uv run mypy flovyn/"
+
+[tasks.check]
+description = "Run all checks (lint, format, typecheck)"
+run = """
+uv run ruff check .
+uv run ruff format --check .
+uv run mypy flovyn/
+"""
+
+[tasks.ci]
+description = "Run CI checks (lint, format, typecheck, unit tests)"
+run = """
+uv run ruff check .
+uv run ruff format --check .
+uv run mypy flovyn/
+uv run pytest tests/unit/ -v
+"""

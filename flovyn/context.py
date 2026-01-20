@@ -187,7 +187,7 @@ class WorkflowContext(ABC):
     @abstractmethod
     async def execute_task(
         self,
-        task: type[Any] | Callable[..., Any],
+        task: str | type[Any] | Callable[..., Any],
         input: Any,
         *,
         timeout: timedelta | None = None,
@@ -196,8 +196,12 @@ class WorkflowContext(ABC):
     ) -> Any:
         """Execute a task and await its result.
 
+        Supports both string-based (distributed) and typed (single-server) APIs:
+        - String-based: execute_task("add-task", {"a": 1, "b": 2})
+        - Typed: execute_task(AddTask, AddInput(a=1, b=2))
+
         Args:
-            task: The task class or function to execute.
+            task: The task kind (string) or task class/function to execute.
             input: The task input.
             timeout: Optional execution timeout.
             retry_policy: Optional retry policy.
@@ -216,7 +220,7 @@ class WorkflowContext(ABC):
     @abstractmethod
     def schedule_task(
         self,
-        task: type[Any] | Callable[..., Any],
+        task: str | type[Any] | Callable[..., Any],
         input: Any,
         *,
         timeout: timedelta | None = None,
@@ -224,8 +228,12 @@ class WorkflowContext(ABC):
     ) -> TaskHandle[Any]:
         """Schedule a task for execution, returns immediately.
 
+        Supports both string-based (distributed) and typed (single-server) APIs:
+        - String-based: schedule_task("add-task", {"a": 1, "b": 2})
+        - Typed: schedule_task(AddTask, AddInput(a=1, b=2))
+
         Args:
-            task: The task class or function to execute.
+            task: The task kind (string) or task class/function to execute.
             input: The task input.
             timeout: Optional execution timeout.
             queue: Optional queue override.
@@ -240,7 +248,7 @@ class WorkflowContext(ABC):
     @abstractmethod
     async def execute_workflow(
         self,
-        workflow: type[Any] | Callable[..., Any],
+        workflow: str | type[Any] | Callable[..., Any],
         input: Any,
         *,
         workflow_id: str | None = None,
@@ -249,8 +257,12 @@ class WorkflowContext(ABC):
     ) -> Any:
         """Execute a child workflow and await its result.
 
+        Supports both string-based (distributed) and typed (single-server) APIs:
+        - String-based: execute_workflow("order-workflow", {"order_id": "123"})
+        - Typed: execute_workflow(OrderWorkflow, OrderInput(order_id="123"))
+
         Args:
-            workflow: The workflow class or function to execute.
+            workflow: The workflow kind (string) or workflow class/function to execute.
             input: The workflow input.
             workflow_id: Optional custom workflow ID.
             timeout: Optional execution timeout.
@@ -267,7 +279,7 @@ class WorkflowContext(ABC):
     @abstractmethod
     def schedule_workflow(
         self,
-        workflow: type[Any] | Callable[..., Any],
+        workflow: str | type[Any] | Callable[..., Any],
         input: Any,
         *,
         workflow_id: str | None = None,
@@ -275,8 +287,12 @@ class WorkflowContext(ABC):
     ) -> WorkflowHandle[Any]:
         """Schedule a child workflow, returns immediately.
 
+        Supports both string-based (distributed) and typed (single-server) APIs:
+        - String-based: schedule_workflow("order-workflow", {"order_id": "123"})
+        - Typed: schedule_workflow(OrderWorkflow, OrderInput(order_id="123"))
+
         Args:
-            workflow: The workflow class or function to execute.
+            workflow: The workflow kind (string) or workflow class/function to execute.
             input: The workflow input.
             workflow_id: Optional custom workflow ID.
             queue: Optional queue override.
@@ -603,7 +619,7 @@ class WorkflowContextImpl(WorkflowContext):
 
     async def execute_task(
         self,
-        task_kind: str,
+        task: str | type[Any] | Callable[..., Any],
         input: Any,
         *,
         timeout: timedelta | None = None,
@@ -612,8 +628,12 @@ class WorkflowContextImpl(WorkflowContext):
     ) -> Any:
         """Execute a task and await its result.
 
+        Supports both string-based (distributed) and typed (single-server) APIs:
+        - String-based: execute_task("add-task", {"a": 1, "b": 2})
+        - Typed: execute_task(AddTask, AddInput(a=1, b=2))
+
         Args:
-            task_kind: The task kind (name) to execute.
+            task: The task kind (string) or task class/function to execute.
             input: The task input (dict or serializable object).
             timeout: Optional timeout for task execution.
             retry_policy: Optional retry policy.
@@ -622,6 +642,18 @@ class WorkflowContextImpl(WorkflowContext):
         Returns:
             The task result (as dict/primitive - caller deserializes as needed).
         """
+        from flovyn.task import get_task_kind, is_task
+
+        # Determine task kind from string or class
+        if isinstance(task, str):
+            task_kind = task
+        elif is_task(task):
+            task_kind = get_task_kind(task)
+        else:
+            raise ValueError(
+                f"task must be a string kind or a @task decorated class/function, got {type(task)}"
+            )
+
         input_bytes = self._serializer.serialize(input)
         timeout_ms = int(timeout.total_seconds() * 1000) if timeout else None
 
@@ -642,7 +674,7 @@ class WorkflowContextImpl(WorkflowContext):
 
     def schedule_task(
         self,
-        task_kind: str,
+        task: str | type[Any] | Callable[..., Any],
         input: Any,
         *,
         timeout: timedelta | None = None,
@@ -650,8 +682,12 @@ class WorkflowContextImpl(WorkflowContext):
     ) -> TaskHandle[Any]:
         """Schedule a task for execution, returns immediately.
 
+        Supports both string-based (distributed) and typed (single-server) APIs:
+        - String-based: schedule_task("add-task", {"a": 1, "b": 2})
+        - Typed: schedule_task(AddTask, AddInput(a=1, b=2))
+
         Args:
-            task_kind: The task kind (name) to execute.
+            task: The task kind (string) or task class/function to execute.
             input: The task input (dict or serializable object).
             timeout: Optional timeout for task execution.
             queue: Optional queue override.
@@ -659,6 +695,18 @@ class WorkflowContextImpl(WorkflowContext):
         Returns:
             A handle to await the task result.
         """
+        from flovyn.task import get_task_kind, is_task
+
+        # Determine task kind from string or class
+        if isinstance(task, str):
+            task_kind = task
+        elif is_task(task):
+            task_kind = get_task_kind(task)
+        else:
+            raise ValueError(
+                f"task must be a string kind or a @task decorated class/function, got {type(task)}"
+            )
+
         input_bytes = self._serializer.serialize(input)
         timeout_ms = int(timeout.total_seconds() * 1000) if timeout else None
 
@@ -698,7 +746,7 @@ class WorkflowContextImpl(WorkflowContext):
 
     async def execute_workflow(
         self,
-        workflow_kind: str,
+        workflow: str | type[Any] | Callable[..., Any],
         input: Any,
         *,
         workflow_id: str | None = None,
@@ -707,8 +755,12 @@ class WorkflowContextImpl(WorkflowContext):
     ) -> Any:
         """Execute a child workflow and await its result.
 
+        Supports both string-based (distributed) and typed (single-server) APIs:
+        - String-based: execute_workflow("order-workflow", {"order_id": "123"})
+        - Typed: execute_workflow(OrderWorkflow, OrderInput(order_id="123"))
+
         Args:
-            workflow_kind: The workflow kind (name) to execute.
+            workflow: The workflow kind (string) or workflow class/function to execute.
             input: The workflow input (dict or serializable object).
             workflow_id: Optional custom workflow ID.
             timeout: Optional timeout for workflow execution.
@@ -717,6 +769,18 @@ class WorkflowContextImpl(WorkflowContext):
         Returns:
             The workflow result (as dict/primitive - caller deserializes as needed).
         """
+        from flovyn.workflow import get_workflow_kind, is_workflow
+
+        # Determine workflow kind from string or class
+        if isinstance(workflow, str):
+            workflow_kind = workflow
+        elif is_workflow(workflow):
+            workflow_kind = get_workflow_kind(workflow)
+        else:
+            raise ValueError(
+                f"workflow must be a string kind or a @workflow decorated class/function, got {type(workflow)}"
+            )
+
         input_bytes = self._serializer.serialize(input)
         name = workflow_id or str(self.random_uuid())
 
@@ -736,7 +800,7 @@ class WorkflowContextImpl(WorkflowContext):
 
     def schedule_workflow(
         self,
-        workflow_kind: str,
+        workflow: str | type[Any] | Callable[..., Any],
         input: Any,
         *,
         workflow_id: str | None = None,
@@ -744,8 +808,12 @@ class WorkflowContextImpl(WorkflowContext):
     ) -> WorkflowHandle[Any]:
         """Schedule a child workflow, returns immediately.
 
+        Supports both string-based (distributed) and typed (single-server) APIs:
+        - String-based: schedule_workflow("order-workflow", {"order_id": "123"})
+        - Typed: schedule_workflow(OrderWorkflow, OrderInput(order_id="123"))
+
         Args:
-            workflow_kind: The workflow kind (name) to execute.
+            workflow: The workflow kind (string) or workflow class/function to execute.
             input: The workflow input (dict or serializable object).
             workflow_id: Optional custom workflow ID.
             queue: Optional queue override.
@@ -753,6 +821,18 @@ class WorkflowContextImpl(WorkflowContext):
         Returns:
             A handle to await the workflow result.
         """
+        from flovyn.workflow import get_workflow_kind, is_workflow
+
+        # Determine workflow kind from string or class
+        if isinstance(workflow, str):
+            workflow_kind = workflow
+        elif is_workflow(workflow):
+            workflow_kind = get_workflow_kind(workflow)
+        else:
+            raise ValueError(
+                f"workflow must be a string kind or a @workflow decorated class/function, got {type(workflow)}"
+            )
+
         input_bytes = self._serializer.serialize(input)
         name = workflow_id or str(self.random_uuid())
 

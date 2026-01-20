@@ -64,6 +64,8 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
 timeout = 30  # 30 second timeout per test
+# By default, exclude E2E tests. Run with: pytest -m e2e
+addopts = "-m 'not e2e'"
 markers = [
     "e2e: marks tests as end-to-end tests (require Docker)",
 ]

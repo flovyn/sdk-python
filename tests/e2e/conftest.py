@@ -72,6 +72,7 @@ async def env(test_harness) -> AsyncGenerator[FlovynTestEnvironment, None]:
         StatefulWorkflow,
         TaskSchedulerWorkflow,
         TaskSchedulingWorkflow,
+        TypedTaskWorkflow,
     )
 
     # Create environment with unique queue for this module
@@ -100,6 +101,7 @@ async def env(test_harness) -> AsyncGenerator[FlovynTestEnvironment, None]:
     environment.register_workflow(ChildLoopWorkflow)
     environment.register_workflow(ComprehensiveWorkflow)
     environment.register_workflow(TaskSchedulerWorkflow)
+    environment.register_workflow(TypedTaskWorkflow)
 
     # Register all tasks
     environment.register_task(EchoTask)

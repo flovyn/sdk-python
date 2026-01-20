@@ -722,3 +722,39 @@ class TaskSchedulerWorkflow:
             task_completed=True,
             task_result=result if isinstance(result, dict) else dict(result),
         )
+
+
+# ============================================================================
+# Typed API Workflows (for testing single-server use case)
+# ============================================================================
+
+
+class TypedTaskInput(BaseModel):
+    a: int
+    b: int
+
+
+class TypedTaskOutput(BaseModel):
+    result: int
+
+
+@workflow(name="typed-task-workflow")
+class TypedTaskWorkflow:
+    """Workflow that uses the typed API to execute a task.
+
+    This workflow demonstrates the typed API where you pass the task class
+    instead of a string. This is useful for single-server deployments
+    where the client and worker are on the same machine.
+    """
+
+    async def run(self, ctx: WorkflowContext, input: TypedTaskInput) -> TypedTaskOutput:
+        # Import the task class for typed API
+        from tests.e2e.fixtures.tasks import AddTask
+
+        # Use the typed API: pass the class instead of string "add-task"
+        result = await ctx.execute_task(
+            AddTask,  # Typed API: pass class instead of "add-task"
+            {"a": input.a, "b": input.b},
+        )
+
+        return TypedTaskOutput(result=result["sum"])

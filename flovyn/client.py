@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections.abc import Callable
 from datetime import timedelta
 from typing import Any, TypeVar
 
@@ -426,7 +427,7 @@ class FlovynClient:
 
     async def start_workflow(
         self,
-        workflow_kind: str,
+        workflow: str | type[Any] | Callable[..., Any],
         input: Any,
         *,
         workflow_id: str | None = None,
@@ -434,17 +435,33 @@ class FlovynClient:
     ) -> WorkflowHandle[Any]:
         """Start a new workflow execution.
 
+        Supports both string-based (distributed) and typed (single-server) APIs:
+        - String-based: start_workflow("order-workflow", {"field": "value"})
+        - Typed: start_workflow(OrderWorkflow, OrderInput(field="value"))
+
         Args:
-            workflow_kind: The workflow kind (name) to execute.
-            input: The workflow input (dict or serializable object).
+            workflow: The workflow kind (string) or workflow class/function.
+            input: The workflow input (dict or Pydantic model).
             workflow_id: Optional custom workflow ID.
             queue: Optional queue override.
 
         Returns:
             A handle to the running workflow.
         """
+        from flovyn.workflow import get_workflow_kind, is_workflow
+
         if self._core_client is None:
             await self._initialize_core()
+
+        # Determine workflow kind from string or class
+        if isinstance(workflow, str):
+            workflow_kind = workflow
+        elif is_workflow(workflow):
+            workflow_kind = get_workflow_kind(workflow)
+        else:
+            raise ValueError(
+                f"workflow must be a string kind or a @workflow decorated class/function, got {type(workflow)}"
+            )
 
         input_bytes = self._serializer.serialize(input)
 

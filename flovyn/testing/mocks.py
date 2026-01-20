@@ -258,12 +258,12 @@ class MockWorkflowContext(WorkflowContext):
         self._time_controller = time_controller or TimeController()
         self._random_counter = 0
         self._state: dict[str, Any] = {}
-        self._executed_tasks: list[tuple[type[Any] | Callable[..., Any], Any]] = []
-        self._executed_workflows: list[tuple[type[Any] | Callable[..., Any], Any]] = []
-        self._task_results: dict[type[Any] | Callable[..., Any], Any] = {}
-        self._workflow_results: dict[type[Any] | Callable[..., Any], Any] = {}
-        self._task_failures: dict[type[Any] | Callable[..., Any], Exception] = {}
-        self._workflow_failures: dict[type[Any] | Callable[..., Any], Exception] = {}
+        self._executed_tasks: list[tuple[str, Any]] = []
+        self._executed_workflows: list[tuple[str, Any]] = []
+        self._task_results: dict[str, Any] = {}
+        self._workflow_results: dict[str, Any] = {}
+        self._task_failures: dict[str, Exception] = {}
+        self._workflow_failures: dict[str, Exception] = {}
         self._promise_values: dict[str, Any] = {}
         self._promise_rejections: dict[str, str] = {}
         self._signal_values: dict[str, Any] = {}
@@ -291,15 +291,41 @@ class MockWorkflowContext(WorkflowContext):
         self._random_counter += 1
         return (self._random_counter % 1000) / 1000.0
 
+    def _resolve_task_kind(self, task: str | type[Any] | Callable[..., Any]) -> str:
+        """Resolve task kind from string or class."""
+        if isinstance(task, str):
+            return task
+        from flovyn.task import get_task_kind, is_task
+
+        if is_task(task):
+            return get_task_kind(task)
+        raise ValueError(
+            f"task must be a string kind or a @task decorated class/function, got {type(task)}"
+        )
+
+    def _resolve_workflow_kind(self, workflow: str | type[Any] | Callable[..., Any]) -> str:
+        """Resolve workflow kind from string or class."""
+        if isinstance(workflow, str):
+            return workflow
+        from flovyn.workflow import get_workflow_kind, is_workflow
+
+        if is_workflow(workflow):
+            return get_workflow_kind(workflow)
+        raise ValueError(
+            f"workflow must be a string kind or a @workflow decorated class/function, got {type(workflow)}"
+        )
+
     async def execute_task(
         self,
-        task_kind: str,
+        task: str | type[Any] | Callable[..., Any],
         input: Any,
         *,
         timeout: timedelta | None = None,
         retry_policy: RetryPolicy | None = None,
         queue: str | None = None,
     ) -> Any:
+        # Resolve task kind from string or class
+        task_kind = self._resolve_task_kind(task)
         self._executed_tasks.append((task_kind, input))
 
         if task_kind in self._task_failures:
@@ -315,12 +341,14 @@ class MockWorkflowContext(WorkflowContext):
 
     def schedule_task(
         self,
-        task_kind: str,
+        task: str | type[Any] | Callable[..., Any],
         input: Any,
         *,
         timeout: timedelta | None = None,
         queue: str | None = None,
     ) -> TaskHandle[Any]:
+        # Resolve task kind from string or class
+        task_kind = self._resolve_task_kind(task)
         self._executed_tasks.append((task_kind, input))
 
         async def get_result() -> Any:
@@ -340,13 +368,15 @@ class MockWorkflowContext(WorkflowContext):
 
     async def execute_workflow(
         self,
-        workflow_kind: str,
+        workflow: str | type[Any] | Callable[..., Any],
         input: Any,
         *,
         workflow_id: str | None = None,
         timeout: timedelta | None = None,
         queue: str | None = None,
     ) -> Any:
+        # Resolve workflow kind from string or class
+        workflow_kind = self._resolve_workflow_kind(workflow)
         self._executed_workflows.append((workflow_kind, input))
 
         if workflow_kind in self._workflow_failures:
@@ -362,12 +392,14 @@ class MockWorkflowContext(WorkflowContext):
 
     def schedule_workflow(
         self,
-        workflow_kind: str,
+        workflow: str | type[Any] | Callable[..., Any],
         input: Any,
         *,
         workflow_id: str | None = None,
         queue: str | None = None,
     ) -> WorkflowHandle[Any]:
+        # Resolve workflow kind from string or class
+        workflow_kind = self._resolve_workflow_kind(workflow)
         self._executed_workflows.append((workflow_kind, input))
         wf_id = workflow_id or str(self.random_uuid())
 
@@ -490,55 +522,75 @@ class MockWorkflowContext(WorkflowContext):
 
     def mock_task_result(
         self,
-        task: type[Any] | Callable[..., Any],
+        task: str | type[Any] | Callable[..., Any],
         result: Any | Callable[[Any], Any],
     ) -> None:
         """Configure a mock result for a task.
 
+        Supports both string-based (distributed) and typed (single-server) APIs:
+        - String-based: mock_task_result("add-task", {"sum": 10})
+        - Typed: mock_task_result(AddTask, {"sum": 10})
+
         Args:
-            task: The task class or function.
+            task: The task kind (string) or task class/function.
             result: The result to return, or a callable that takes input and returns result.
         """
-        self._task_results[task] = result
+        task_kind = self._resolve_task_kind(task)
+        self._task_results[task_kind] = result
 
     def mock_task_failure(
         self,
-        task: type[Any] | Callable[..., Any],
+        task: str | type[Any] | Callable[..., Any],
         error: Exception,
     ) -> None:
         """Configure a task to fail with the given error.
 
+        Supports both string-based (distributed) and typed (single-server) APIs:
+        - String-based: mock_task_failure("add-task", TaskFailed("error"))
+        - Typed: mock_task_failure(AddTask, TaskFailed("error"))
+
         Args:
-            task: The task class or function.
+            task: The task kind (string) or task class/function.
             error: The exception to raise.
         """
-        self._task_failures[task] = error
+        task_kind = self._resolve_task_kind(task)
+        self._task_failures[task_kind] = error
 
     def mock_workflow_result(
         self,
-        workflow: type[Any] | Callable[..., Any],
+        workflow: str | type[Any] | Callable[..., Any],
         result: Any | Callable[[Any], Any],
     ) -> None:
         """Configure a mock result for a child workflow.
 
+        Supports both string-based (distributed) and typed (single-server) APIs:
+        - String-based: mock_workflow_result("order-workflow", {"status": "done"})
+        - Typed: mock_workflow_result(OrderWorkflow, {"status": "done"})
+
         Args:
-            workflow: The workflow class or function.
+            workflow: The workflow kind (string) or workflow class/function.
             result: The result to return, or a callable that takes input and returns result.
         """
-        self._workflow_results[workflow] = result
+        workflow_kind = self._resolve_workflow_kind(workflow)
+        self._workflow_results[workflow_kind] = result
 
     def mock_workflow_failure(
         self,
-        workflow: type[Any] | Callable[..., Any],
+        workflow: str | type[Any] | Callable[..., Any],
         error: Exception,
     ) -> None:
         """Configure a child workflow to fail with the given error.
 
+        Supports both string-based (distributed) and typed (single-server) APIs:
+        - String-based: mock_workflow_failure("order-workflow", ChildWorkflowFailed("error"))
+        - Typed: mock_workflow_failure(OrderWorkflow, ChildWorkflowFailed("error"))
+
         Args:
-            workflow: The workflow class or function.
+            workflow: The workflow kind (string) or workflow class/function.
             error: The exception to raise.
         """
-        self._workflow_failures[workflow] = error
+        workflow_kind = self._resolve_workflow_kind(workflow)
+        self._workflow_failures[workflow_kind] = error
 
     def mock_promise_value(self, name: str, value: Any) -> None:
         """Configure a promise to resolve with the given value.
@@ -581,13 +633,13 @@ class MockWorkflowContext(WorkflowContext):
         self._cancellation_requested = True
 
     @property
-    def executed_tasks(self) -> list[tuple[type[Any] | Callable[..., Any], Any]]:
-        """Get list of (task, input) tuples for all executed tasks."""
+    def executed_tasks(self) -> list[tuple[str, Any]]:
+        """Get list of (task_kind, input) tuples for all executed tasks."""
         return self._executed_tasks
 
     @property
-    def executed_workflows(self) -> list[tuple[type[Any] | Callable[..., Any], Any]]:
-        """Get list of (workflow, input) tuples for all executed child workflows."""
+    def executed_workflows(self) -> list[tuple[str, Any]]:
+        """Get list of (workflow_kind, input) tuples for all executed child workflows."""
         return self._executed_workflows
 
     @property

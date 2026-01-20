@@ -185,15 +185,19 @@ class FlovynTestEnvironment:
 
     async def start_workflow(
         self,
-        workflow_kind: str,
+        workflow: str | type[Any] | Any,
         input: Any,
         *,
         workflow_id: str | None = None,
     ) -> WorkflowHandle[Any]:
         """Start a workflow for testing.
 
+        Supports both string-based (distributed) and typed (single-server) APIs:
+        - String-based: start_workflow("order-workflow", {"order_id": "123"})
+        - Typed: start_workflow(OrderWorkflow, OrderInput(order_id="123"))
+
         Args:
-            workflow_kind: The workflow kind (name) to execute.
+            workflow: The workflow kind (string) or workflow class/function to execute.
             input: The workflow input (dict or serializable object).
             workflow_id: Optional custom workflow ID.
 
@@ -204,7 +208,7 @@ class FlovynTestEnvironment:
             raise RuntimeError("Test environment not started. Call start() first.")
 
         return await self._client.start_workflow(
-            workflow_kind,
+            workflow,
             input,
             workflow_id=workflow_id,
             queue=self._queue,
@@ -229,7 +233,7 @@ class FlovynTestEnvironment:
 
     async def start_and_await(
         self,
-        workflow_kind: str,
+        workflow: str | type[Any] | Any,
         input: Any,
         *,
         workflow_id: str | None = None,
@@ -237,8 +241,12 @@ class FlovynTestEnvironment:
     ) -> Any:
         """Start a workflow and wait for it to complete.
 
+        Supports both string-based (distributed) and typed (single-server) APIs:
+        - String-based: start_and_await("order-workflow", {"order_id": "123"})
+        - Typed: start_and_await(OrderWorkflow, OrderInput(order_id="123"))
+
         Args:
-            workflow_kind: The workflow kind (name) to execute.
+            workflow: The workflow kind (string) or workflow class/function to execute.
             input: The workflow input (dict or serializable object).
             workflow_id: Optional custom workflow ID.
             timeout: Maximum time to wait.
@@ -246,7 +254,7 @@ class FlovynTestEnvironment:
         Returns:
             The workflow result.
         """
-        handle = await self.start_workflow(workflow_kind, input, workflow_id=workflow_id)
+        handle = await self.start_workflow(workflow, input, workflow_id=workflow_id)
         return await self.await_completion(handle, timeout=timeout)
 
     async def resolve_promise(
@@ -558,17 +566,6 @@ class TestHarness:
             raise ImportError(
                 "testcontainers is required for E2E tests. Install with: pip install testcontainers"
             ) from err
-
-        # Check for dev infrastructure mode
-        use_dev_infra = os.environ.get("FLOVYN_E2E_USE_DEV_INFRA", "").lower() in ("1", "true")
-        if use_dev_infra:
-            logger.info("Using dev infrastructure (FLOVYN_E2E_USE_DEV_INFRA=1)")
-            self.grpc_host = "localhost"
-            self.grpc_port = 9090
-            self.http_host = "localhost"
-            self.http_port = 8000
-            self._started = True
-            return
 
         # Start PostgreSQL
         self._postgres_container = PostgresContainer(
