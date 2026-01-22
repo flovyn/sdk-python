@@ -87,7 +87,7 @@ async def test_promise_timeout(env: FlovynTestEnvironment) -> None:
     Flow:
     1. Start workflow that waits for a promise with short timeout
     2. Don't resolve the promise
-    3. Workflow should timeout
+    3. Workflow should timeout with PromiseTimeout error
     """
     # Start the workflow with a short timeout (2 seconds)
     handle = await env.start_workflow(
