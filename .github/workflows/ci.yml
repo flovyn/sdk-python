@@ -9,7 +9,7 @@ on:
 env:
   # Pin to specific sdk-rust release version
   # Update this when upgrading to a new FFI version
-  FFI_VERSION: v0.1.5
+  FFI_VERSION: v0.1.6
 
 jobs:
   build:
@@ -64,22 +64,8 @@ jobs:
       - name: Download native libraries from sdk-rust release
         run: ./bin/download-ffi.sh ${{ env.FFI_VERSION }} linux-x86_64
 
-      - name: Verify FFI download
-        run: |
-          echo "Checking flovyn/_native contents:"
-          ls -la flovyn/_native/
-          echo "Verifying library file:"
-          file flovyn/_native/libflovyn_worker_ffi.so || echo "Library file not found!"
-
       - name: Install dependencies
         run: uv sync --all-extras
-
-      - name: Verify FFI after install
-        run: |
-          echo "Checking flovyn/_native contents after uv sync:"
-          ls -la flovyn/_native/
-          echo "Python can find the module from:"
-          uv run python -c "from flovyn._native import loader; print(loader._find_native_library())" || echo "Could not find native library"
 
       - name: Login to Scaleway Container Registry
         uses: docker/login-action@v3
