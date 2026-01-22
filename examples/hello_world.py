@@ -56,9 +56,7 @@ class HelloWorldWorkflow:
             GreetInput(name=input.name),
         )
 
-        return HelloOutput(
-            message=f"{result.greeting} (processed at {timestamp})"
-        )
+        return HelloOutput(message=f"{result.greeting} (processed at {timestamp})")
 
 
 async def main() -> None:

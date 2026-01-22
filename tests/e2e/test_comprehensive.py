@@ -89,9 +89,7 @@ async def test_all_basic_workflows(env: FlovynTestEnvironment) -> None:
         "doubler-workflow",
         {"value": 25},
     )
-    doubler_result = await env.await_completion(
-        doubler_handle, timeout=timedelta(seconds=30)
-    )
+    doubler_result = await env.await_completion(doubler_handle, timeout=timedelta(seconds=30))
     assert doubler_result["result"] == 50
 
     # Random workflow
@@ -99,9 +97,7 @@ async def test_all_basic_workflows(env: FlovynTestEnvironment) -> None:
         "random-workflow",
         {},
     )
-    random_result = await env.await_completion(
-        random_handle, timeout=timedelta(seconds=30)
-    )
+    random_result = await env.await_completion(random_handle, timeout=timedelta(seconds=30))
     assert random_result["uuid"] is not None
     assert 0 <= random_result["random_float"] < 1.0
 
@@ -110,9 +106,7 @@ async def test_all_basic_workflows(env: FlovynTestEnvironment) -> None:
         "sleep-workflow",
         {"duration_ms": 50},
     )
-    sleep_result = await env.await_completion(
-        sleep_handle, timeout=timedelta(seconds=30)
-    )
+    sleep_result = await env.await_completion(sleep_handle, timeout=timedelta(seconds=30))
     assert sleep_result["slept_duration_ms"] == 50
 
     # Stateful workflow
@@ -120,7 +114,5 @@ async def test_all_basic_workflows(env: FlovynTestEnvironment) -> None:
         "stateful-workflow",
         {"key": "my-key", "value": "my-value"},
     )
-    stateful_result = await env.await_completion(
-        stateful_handle, timeout=timedelta(seconds=30)
-    )
+    stateful_result = await env.await_completion(stateful_handle, timeout=timedelta(seconds=30))
     assert stateful_result["stored_value"] == "my-value"

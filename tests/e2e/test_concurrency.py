@@ -135,9 +135,7 @@ async def test_mixed_workflow_types_concurrent(env: FlovynTestEnvironment) -> No
             result = await env.await_completion(handle, timeout=timedelta(seconds=30))
             assert result["message"] == f"echo-{i}"
         elif workflow_type == "doubler":
-            result = await env.await_completion(
-                handle, timeout=timedelta(seconds=30)
-            )
+            result = await env.await_completion(handle, timeout=timedelta(seconds=30))
             assert result["result"] == i * 5 * 2
         elif workflow_type == "sleep":
             result = await env.await_completion(handle, timeout=timedelta(seconds=30))

@@ -6,7 +6,7 @@ import asyncio
 import logging
 import traceback
 from collections.abc import Callable
-from typing import Any
+from typing import Any, cast
 
 from flovyn.context import TaskContextImpl, WorkflowContextImpl
 from flovyn.exceptions import TaskCancelled, TaskFailed, WorkflowCancelled, WorkflowSuspended
@@ -195,7 +195,7 @@ class WorkflowWorker:
         Returns:
             Status string: "initializing", "running", or "shutting_down"
         """
-        return self._core_worker.get_status()
+        return cast(str, self._core_worker.get_status())
 
 
 class TaskWorker:
@@ -367,4 +367,4 @@ class TaskWorker:
         Returns:
             Status string: "initializing", "running", or "shutting_down"
         """
-        return self._core_worker.get_status()
+        return cast(str, self._core_worker.get_status())
