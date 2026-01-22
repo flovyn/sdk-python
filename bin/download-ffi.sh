@@ -44,6 +44,27 @@ for platform in "${PLATFORMS[@]}"; do
     tar -xzf "tmp/libflovyn_worker_ffi-${platform}.tar.gz" -C "${NATIVES_DIR}/"
 done
 
+# Create symlink for the current platform's library in the expected location
+# UniFFI bindings expect the library directly in _native/, not in a subdirectory
+CURRENT_PLATFORM=""
+case "$(uname -s)-$(uname -m)" in
+    Linux-x86_64)  CURRENT_PLATFORM="linux-x86_64" ;;
+    Linux-aarch64) CURRENT_PLATFORM="linux-aarch64" ;;
+    Darwin-x86_64) CURRENT_PLATFORM="darwin-x86_64" ;;
+    Darwin-arm64)  CURRENT_PLATFORM="darwin-aarch64" ;;
+esac
+
+if [[ -n "$CURRENT_PLATFORM" && -d "${NATIVES_DIR}/${CURRENT_PLATFORM}" ]]; then
+    echo "Creating symlinks for current platform (${CURRENT_PLATFORM})..."
+    for lib in "${NATIVES_DIR}/${CURRENT_PLATFORM}"/*; do
+        if [[ -f "$lib" ]]; then
+            libname=$(basename "$lib")
+            ln -sf "${CURRENT_PLATFORM}/${libname}" "${NATIVES_DIR}/${libname}"
+            echo "  Linked ${libname}"
+        fi
+    done
+fi
+
 # Download and extract Python bindings
 echo "Downloading Python bindings..."
 curl -fsSL "${BASE_URL}/flovyn-worker-ffi-bindings.tar.gz" -o "tmp/flovyn-worker-ffi-bindings.tar.gz"
