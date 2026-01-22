@@ -6,7 +6,7 @@ import asyncio
 import logging
 from collections.abc import Callable
 from datetime import timedelta
-from typing import Any, TypeVar
+from typing import Any, TypeVar, cast
 
 from flovyn.exceptions import ConfigurationError
 from flovyn.hooks import WorkflowHook
@@ -568,7 +568,7 @@ class FlovynClient:
                         raise ValueError(
                             f"Promise '{promise_name}' has no promiseId in event payload"
                         )
-                    return promise_id
+                    return cast(str, promise_id)
 
         raise ValueError(f"Promise '{promise_name}' not found in workflow {workflow_id}")
 
@@ -624,7 +624,7 @@ class FlovynClient:
         """
         if self._core_worker is None:
             return None
-        return self._core_worker.get_status()
+        return cast(str, self._core_worker.get_status())
 
     @property
     def worker_uptime_ms(self) -> int | None:
@@ -635,7 +635,7 @@ class FlovynClient:
         """
         if self._core_worker is None:
             return None
-        return self._core_worker.get_uptime_ms()
+        return cast(int, self._core_worker.get_uptime_ms())
 
     @property
     def worker_started_at_ms(self) -> int | None:
@@ -646,7 +646,7 @@ class FlovynClient:
         """
         if self._core_worker is None:
             return None
-        return self._core_worker.get_started_at_ms()
+        return cast(int, self._core_worker.get_started_at_ms())
 
     @property
     def worker_id(self) -> str | None:
@@ -657,7 +657,7 @@ class FlovynClient:
         """
         if self._core_worker is None:
             return None
-        return self._core_worker.get_worker_id()
+        return cast(str, self._core_worker.get_worker_id())
 
     def get_worker_metrics(self) -> Any:
         """Get worker metrics.
@@ -730,7 +730,7 @@ class FlovynClient:
         """
         if self._core_worker is None:
             return False
-        return self._core_worker.is_paused()
+        return cast(bool, self._core_worker.is_paused())
 
     @property
     def is_running(self) -> bool:
@@ -741,7 +741,7 @@ class FlovynClient:
         """
         if self._core_worker is None:
             return False
-        return self._core_worker.is_running()
+        return cast(bool, self._core_worker.is_running())
 
     def get_pause_reason(self) -> str | None:
         """Get the pause reason (if paused).
@@ -751,7 +751,7 @@ class FlovynClient:
         """
         if self._core_worker is None:
             return None
-        return self._core_worker.get_pause_reason()
+        return cast(str, self._core_worker.get_pause_reason())
 
     # =========================================================================
     # Config Accessor APIs
@@ -766,7 +766,7 @@ class FlovynClient:
         """
         if self._core_worker is None:
             return self._max_concurrent_workflows or 100
-        return self._core_worker.get_max_concurrent_workflows()
+        return cast(int, self._core_worker.get_max_concurrent_workflows())
 
     @property
     def max_concurrent_tasks(self) -> int:
@@ -777,7 +777,7 @@ class FlovynClient:
         """
         if self._core_worker is None:
             return self._max_concurrent_tasks or 100
-        return self._core_worker.get_max_concurrent_tasks()
+        return cast(int, self._core_worker.get_max_concurrent_tasks())
 
     @property
     def queue(self) -> str:
@@ -788,7 +788,7 @@ class FlovynClient:
         """
         if self._core_worker is None:
             return self._queue
-        return self._core_worker.get_queue()
+        return cast(str, self._core_worker.get_queue())
 
     @property
     def org_id(self) -> str:
@@ -799,7 +799,7 @@ class FlovynClient:
         """
         if self._core_worker is None:
             return self._org_id
-        return self._core_worker.get_org_id()
+        return cast(str, self._core_worker.get_org_id())
 
     # =========================================================================
     # Lifecycle Events APIs
@@ -816,7 +816,7 @@ class FlovynClient:
         """
         if self._core_worker is None:
             return []
-        return self._core_worker.poll_lifecycle_events()
+        return cast(list[Any], self._core_worker.poll_lifecycle_events())
 
     @property
     def pending_lifecycle_event_count(self) -> int:
@@ -827,4 +827,4 @@ class FlovynClient:
         """
         if self._core_worker is None:
             return 0
-        return self._core_worker.pending_lifecycle_event_count()
+        return cast(int, self._core_worker.pending_lifecycle_event_count())
