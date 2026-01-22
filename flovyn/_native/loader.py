@@ -38,16 +38,35 @@ def _get_library_name() -> str:
         raise RuntimeError(f"Unsupported platform: {system}/{arch}")
 
 
+def _get_platform_dir() -> str:
+    """Get the platform-specific directory name."""
+    system = platform.system().lower()
+    machine = platform.machine().lower()
+
+    # Normalize machine architecture names
+    if machine in ("x86_64", "amd64"):
+        arch = "x86_64"
+    elif machine in ("aarch64", "arm64"):
+        arch = "aarch64"
+    else:
+        arch = machine
+
+    return f"{system}-{arch}"
+
+
 def _find_native_library() -> Path:
     """Find the native library in package resources or development locations."""
     # Check in the _native directory (installed package)
     native_dir = Path(__file__).parent
     lib_name = _get_library_name()
+    platform_dir = _get_platform_dir()
 
     # Check standard locations
     candidates = [
         native_dir / lib_name,
         native_dir / "lib" / lib_name,
+        # Platform-specific subdirectory (from download script)
+        native_dir / platform_dir / lib_name,
     ]
 
     # Check development locations (relative to sdk-python)
