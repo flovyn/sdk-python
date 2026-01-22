@@ -78,7 +78,7 @@ jobs:
         run: docker pull rg.fr-par.scw.cloud/flovyn/flovyn-server:latest
 
       - name: Run E2E tests
-        run: uv run pytest tests/e2e -v --tb=short
+        run: uv run pytest tests/e2e -v --tb=short -m e2e
         env:
           FLOVYN_E2E_ENABLED: "1"
           FLOVYN_E2E_USE_DEV_INFRA: "1"
