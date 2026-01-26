@@ -164,17 +164,6 @@ download_from_release() {
     local current_platform=$(detect_platform)
     log_info "Detected platform: $current_platform"
 
-    # Check if this platform is available from releases
-    case "$current_platform" in
-        macos-*)
-            log_warn "macOS builds are not available from releases (osxcross takes 10+ min in CI)"
-            log_warn "Building from local sdk-rust instead..."
-            build_current_platform
-            generate_bindings
-            return
-            ;;
-    esac
-
     log_info "Downloading FFI artifacts from $SDK_RUST_REPO release: $version"
 
     local tmp_dir=$(mktemp -d)
@@ -271,8 +260,7 @@ Environment Variables:
 
 Notes:
   - --download auto-detects your OS and downloads only the matching native library
-  - macOS is not available from releases; --download will fall back to local build
-  - Available release platforms: linux-x86_64, linux-aarch64, windows-x86_64, windows-aarch64
+  - Available release platforms: linux-x86_64, linux-aarch64, macos-x86_64, macos-aarch64, windows-x86_64
 
 Examples:
   $0                          # Build from local sdk-rust
