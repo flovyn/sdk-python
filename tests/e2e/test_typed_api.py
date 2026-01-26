@@ -77,11 +77,11 @@ async def test_start_and_await_with_typed_input_output(env: FlovynTestEnvironmen
 async def test_typed_task_execution_in_workflow(env: FlovynTestEnvironment) -> None:
     """Test workflow that uses typed API internally to execute a task.
 
-    This verifies that ctx.execute_task(TaskClass, input) works within a workflow.
+    This verifies that ctx.schedule(TaskClass, input) works within a workflow.
     """
     # The TypedTaskWorkflow internally uses AddTask class instead of string
     handle = await env.start_workflow(
-        TypedTaskWorkflow,  # This workflow uses ctx.execute_task(AddTask, ...)
+        TypedTaskWorkflow,  # This workflow uses ctx.schedule(AddTask, ...)
         TypedTaskInput(a=10, b=32),  # Typed input model
     )
 

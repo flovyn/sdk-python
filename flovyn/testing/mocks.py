@@ -183,6 +183,17 @@ class MockTaskContext(TaskContext):
 
     # Streaming methods
 
+    async def stream(self, event_type: str, data: Any) -> bool:
+        """Stream an event to connected clients (mock implementation)."""
+        self._stream_events.append(
+            StreamEvent(
+                event_type=event_type,
+                payload=data,
+                timestamp=datetime.now(UTC),
+            )
+        )
+        return True
+
     async def stream_token(self, text: str) -> bool:
         """Stream a token to connected clients (mock implementation)."""
         self._stream_events.append(
@@ -315,7 +326,7 @@ class MockWorkflowContext(WorkflowContext):
             f"workflow must be a string kind or a @workflow decorated class/function, got {type(workflow)}"
         )
 
-    async def execute_task(
+    async def schedule(
         self,
         task: str | type[Any] | Callable[..., Any],
         input: Any,
@@ -339,7 +350,7 @@ class MockWorkflowContext(WorkflowContext):
 
         raise TaskFailed(f"No mock result configured for task {task_kind}")
 
-    def schedule_task(
+    def schedule_async(
         self,
         task: str | type[Any] | Callable[..., Any],
         input: Any,
@@ -366,7 +377,7 @@ class MockWorkflowContext(WorkflowContext):
             result_getter=get_result,
         )
 
-    async def execute_workflow(
+    async def schedule_workflow(
         self,
         workflow: str | type[Any] | Callable[..., Any],
         input: Any,
@@ -390,7 +401,7 @@ class MockWorkflowContext(WorkflowContext):
 
         raise ChildWorkflowFailed(f"No mock result configured for workflow {workflow_kind}")
 
-    def schedule_workflow(
+    def schedule_workflow_async(
         self,
         workflow: str | type[Any] | Callable[..., Any],
         input: Any,
@@ -436,7 +447,7 @@ class MockWorkflowContext(WorkflowContext):
         # In mock context, sleep is instant
         pass
 
-    async def wait_for_promise(
+    async def promise(
         self,
         name: str,
         *,
@@ -467,7 +478,7 @@ class MockWorkflowContext(WorkflowContext):
 
         raise TimeoutError(f"Signal '{name}' not received in mock")
 
-    async def get_state(
+    async def get(
         self,
         key: str,
         *,
@@ -476,11 +487,17 @@ class MockWorkflowContext(WorkflowContext):
     ) -> T | None:
         return self._state.get(key, default)
 
-    async def set_state(self, key: str, value: Any) -> None:
+    async def set(self, key: str, value: Any) -> None:
         self._state[key] = value
 
-    async def clear_state(self, key: str) -> None:
+    async def clear(self, key: str) -> None:
         self._state.pop(key, None)
+
+    async def clear_all(self) -> None:
+        self._state.clear()
+
+    def state_keys(self) -> list[str]:
+        return list(self._state.keys())
 
     async def run(
         self,

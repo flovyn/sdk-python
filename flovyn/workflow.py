@@ -78,14 +78,14 @@ def workflow(
             @workflow(name="order-processing")
             class OrderWorkflow:
                 async def run(self, ctx: WorkflowContext, input: OrderInput) -> OrderResult:
-                    validation = await ctx.execute_task(ValidateOrder, input)
+                    validation = await ctx.schedule(ValidateOrder, input)
                     ...
 
         Function-based workflow::
 
             @workflow(name="simple-workflow")
             async def simple_workflow(ctx: WorkflowContext, name: str) -> str:
-                greeting = await ctx.execute_task(greet_task, name)
+                greeting = await ctx.schedule(greet_task, name)
                 return f"Workflow completed: {greeting}"
     """
 
@@ -169,7 +169,7 @@ def dynamic_workflow(
         @dynamic_workflow(name="dynamic-processor")
         async def process(ctx: WorkflowContext, input: dict[str, Any]) -> dict[str, Any]:
             task_kind = input.get("task_kind", "default-task")
-            result = await ctx.execute_task_by_name(task_kind, input.get("payload", {}))
+            result = await ctx.schedule(task_kind, input.get("payload", {}))
             return {"result": result}
     """
     return workflow(

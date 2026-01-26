@@ -103,7 +103,7 @@ class TestMockWorkflowContext:
         ctx = MockWorkflowContext()
         ctx.mock_task_result(AddTask, AddOutput(result=42))
 
-        result = await ctx.execute_task(AddTask, AddInput(a=1, b=2))
+        result = await ctx.schedule(AddTask, AddInput(a=1, b=2))
 
         assert result.result == 42
         assert len(ctx.executed_tasks) == 1
@@ -116,7 +116,7 @@ class TestMockWorkflowContext:
             lambda input: AddOutput(result=input.a + input.b),
         )
 
-        result = await ctx.execute_task(AddTask, AddInput(a=5, b=7))
+        result = await ctx.schedule(AddTask, AddInput(a=5, b=7))
 
         assert result.result == 12
 
@@ -126,22 +126,22 @@ class TestMockWorkflowContext:
         ctx.mock_task_failure(AddTask, TaskFailed("Mock failure"))
 
         with pytest.raises(TaskFailed):
-            await ctx.execute_task(AddTask, AddInput(a=1, b=2))
+            await ctx.schedule(AddTask, AddInput(a=1, b=2))
 
     @pytest.mark.asyncio
     async def test_state_operations(self) -> None:
         ctx = MockWorkflowContext()
 
-        await ctx.set_state("key1", "value1")
-        await ctx.set_state("key2", 42)
+        await ctx.set("key1", "value1")
+        await ctx.set("key2", 42)
 
-        assert await ctx.get_state("key1") == "value1"
-        assert await ctx.get_state("key2") == 42
-        assert await ctx.get_state("missing") is None
-        assert await ctx.get_state("missing", default="default") == "default"
+        assert await ctx.get("key1") == "value1"
+        assert await ctx.get("key2") == 42
+        assert await ctx.get("missing") is None
+        assert await ctx.get("missing", default="default") == "default"
 
-        await ctx.clear_state("key1")
-        assert await ctx.get_state("key1") is None
+        await ctx.clear("key1")
+        assert await ctx.get("key1") is None
 
     @pytest.mark.asyncio
     async def test_cancellation_check(self) -> None:
@@ -160,7 +160,7 @@ class TestMockWorkflowContext:
         ctx = MockWorkflowContext()
         ctx.mock_promise_value("my-promise", {"data": "resolved"})
 
-        result = await ctx.wait_for_promise("my-promise")
+        result = await ctx.promise("my-promise")
         assert result == {"data": "resolved"}
 
 

@@ -9,6 +9,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Generic,
+    Literal,
     Protocol,
     TypeVar,
     runtime_checkable,
@@ -16,6 +17,25 @@ from typing import (
 
 if TYPE_CHECKING:
     from flovyn.context import TaskContext, WorkflowContext
+
+
+# Streaming types
+StreamEventType = Literal["token", "progress", "data", "error"]
+
+
+@dataclass
+class StreamEvent:
+    """A streaming event from a task.
+
+    Attributes:
+        type: The type of stream event.
+        data: The event payload (varies by type).
+        timestamp: Unix timestamp in milliseconds when the event was created.
+    """
+
+    type: StreamEventType
+    data: Any
+    timestamp: int
 
 # Type variables for generics
 InputT = TypeVar("InputT", contravariant=True)

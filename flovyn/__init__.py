@@ -23,7 +23,7 @@ from flovyn.hooks import (
 )
 from flovyn.serde import AutoSerde, JsonSerde, PydanticSerde, Serializer
 from flovyn.task import dynamic_task, task
-from flovyn.types import RetryPolicy, TaskHandle, WorkflowHandle
+from flovyn.types import RetryPolicy, StreamEvent, StreamEventType, TaskHandle, WorkflowHandle
 from flovyn.workflow import dynamic_workflow, workflow
 
 __version__ = "0.1.0"
@@ -46,6 +46,9 @@ __all__ = [
     "TaskHandle",
     # Configuration
     "RetryPolicy",
+    # Streaming
+    "StreamEvent",
+    "StreamEventType",
     # Hooks
     "WorkflowHook",
     "WorkflowStartedEvent",

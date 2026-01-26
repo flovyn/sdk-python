@@ -79,6 +79,21 @@ class TaskContext(ABC):
     # Streaming methods
 
     @abstractmethod
+    async def stream(self, event_type: str, data: Any) -> bool:
+        """Stream an event to connected clients.
+
+        Consolidated streaming API that handles all event types.
+
+        Args:
+            event_type: The type of event ("token", "progress", "data", "error").
+            data: The event data (varies by type).
+
+        Returns:
+            True if the stream was acknowledged by the server.
+        """
+        ...
+
+    @abstractmethod
     async def stream_token(self, text: str) -> bool:
         """Stream a token to connected clients.
 
@@ -185,7 +200,7 @@ class WorkflowContext(ABC):
     # Task execution
 
     @abstractmethod
-    async def execute_task(
+    async def schedule(
         self,
         task: str | type[Any] | Callable[..., Any],
         input: Any,
@@ -194,11 +209,11 @@ class WorkflowContext(ABC):
         retry_policy: RetryPolicy | None = None,
         queue: str | None = None,
     ) -> Any:
-        """Execute a task and await its result.
+        """Schedule a task and await its result.
 
         Supports both string-based (distributed) and typed (single-server) APIs:
-        - String-based: execute_task("add-task", {"a": 1, "b": 2})
-        - Typed: execute_task(AddTask, AddInput(a=1, b=2))
+        - String-based: schedule("add-task", {"a": 1, "b": 2})
+        - Typed: schedule(AddTask, AddInput(a=1, b=2))
 
         Args:
             task: The task kind (string) or task class/function to execute.
@@ -218,7 +233,7 @@ class WorkflowContext(ABC):
         ...
 
     @abstractmethod
-    def schedule_task(
+    def schedule_async(
         self,
         task: str | type[Any] | Callable[..., Any],
         input: Any,
@@ -229,8 +244,8 @@ class WorkflowContext(ABC):
         """Schedule a task for execution, returns immediately.
 
         Supports both string-based (distributed) and typed (single-server) APIs:
-        - String-based: schedule_task("add-task", {"a": 1, "b": 2})
-        - Typed: schedule_task(AddTask, AddInput(a=1, b=2))
+        - String-based: schedule_async("add-task", {"a": 1, "b": 2})
+        - Typed: schedule_async(AddTask, AddInput(a=1, b=2))
 
         Args:
             task: The task kind (string) or task class/function to execute.
@@ -246,7 +261,7 @@ class WorkflowContext(ABC):
     # Child workflows
 
     @abstractmethod
-    async def execute_workflow(
+    async def schedule_workflow(
         self,
         workflow: str | type[Any] | Callable[..., Any],
         input: Any,
@@ -255,11 +270,11 @@ class WorkflowContext(ABC):
         timeout: timedelta | None = None,
         queue: str | None = None,
     ) -> Any:
-        """Execute a child workflow and await its result.
+        """Schedule a child workflow and await its result.
 
         Supports both string-based (distributed) and typed (single-server) APIs:
-        - String-based: execute_workflow("order-workflow", {"order_id": "123"})
-        - Typed: execute_workflow(OrderWorkflow, OrderInput(order_id="123"))
+        - String-based: schedule_workflow("order-workflow", {"order_id": "123"})
+        - Typed: schedule_workflow(OrderWorkflow, OrderInput(order_id="123"))
 
         Args:
             workflow: The workflow kind (string) or workflow class/function to execute.
@@ -277,7 +292,7 @@ class WorkflowContext(ABC):
         ...
 
     @abstractmethod
-    def schedule_workflow(
+    def schedule_workflow_async(
         self,
         workflow: str | type[Any] | Callable[..., Any],
         input: Any,
@@ -288,8 +303,8 @@ class WorkflowContext(ABC):
         """Schedule a child workflow, returns immediately.
 
         Supports both string-based (distributed) and typed (single-server) APIs:
-        - String-based: schedule_workflow("order-workflow", {"order_id": "123"})
-        - Typed: schedule_workflow(OrderWorkflow, OrderInput(order_id="123"))
+        - String-based: schedule_workflow_async("order-workflow", {"order_id": "123"})
+        - Typed: schedule_workflow_async(OrderWorkflow, OrderInput(order_id="123"))
 
         Args:
             workflow: The workflow kind (string) or workflow class/function to execute.
@@ -325,14 +340,14 @@ class WorkflowContext(ABC):
     # Promises (external completion)
 
     @abstractmethod
-    async def wait_for_promise(
+    async def promise(
         self,
         name: str,
         *,
         timeout: timedelta | None = None,
         type_hint: type[T] = Any,  # type: ignore[assignment]
     ) -> T:
-        """Wait for an external promise to be resolved.
+        """Create and wait for an external promise to be resolved.
 
         Args:
             name: The promise name.
@@ -373,7 +388,7 @@ class WorkflowContext(ABC):
     # State management
 
     @abstractmethod
-    async def get_state(
+    async def get(
         self,
         key: str,
         *,
@@ -393,7 +408,7 @@ class WorkflowContext(ABC):
         ...
 
     @abstractmethod
-    async def set_state(self, key: str, value: Any) -> None:
+    async def set(self, key: str, value: Any) -> None:
         """Set workflow state.
 
         Args:
@@ -403,11 +418,25 @@ class WorkflowContext(ABC):
         ...
 
     @abstractmethod
-    async def clear_state(self, key: str) -> None:
+    async def clear(self, key: str) -> None:
         """Clear a state key.
 
         Args:
             key: The state key to clear.
+        """
+        ...
+
+    @abstractmethod
+    async def clear_all(self) -> None:
+        """Clear all workflow state."""
+        ...
+
+    @abstractmethod
+    def state_keys(self) -> list[str]:
+        """Get all state keys.
+
+        Returns:
+            List of all state keys.
         """
         ...
 
@@ -529,6 +558,24 @@ class TaskContextImpl(TaskContext):
 
     # Streaming methods
 
+    async def stream(self, event_type: str, data: Any) -> bool:
+        """Stream an event to connected clients."""
+        if event_type == "token":
+            return await self.stream_token(str(data))
+        elif event_type == "progress":
+            if isinstance(data, dict):
+                return await self.stream_progress(data.get("progress", 0.0), data.get("details"))
+            return await self.stream_progress(float(data))
+        elif event_type == "data":
+            return await self.stream_data(data)
+        elif event_type == "error":
+            if isinstance(data, dict):
+                return await self.stream_error(data.get("message", ""), data.get("code"))
+            return await self.stream_error(str(data))
+        else:
+            self._logger.warning(f"Unknown stream event type: {event_type}")
+            return False
+
     async def stream_token(self, text: str) -> bool:
         """Stream a token to connected clients."""
         if self._ffi_context is None:
@@ -617,7 +664,7 @@ class WorkflowContextImpl(WorkflowContext):
         result: float = self._ffi.random()
         return result
 
-    async def execute_task(
+    async def schedule(
         self,
         task: str | type[Any] | Callable[..., Any],
         input: Any,
@@ -626,11 +673,11 @@ class WorkflowContextImpl(WorkflowContext):
         retry_policy: RetryPolicy | None = None,
         queue: str | None = None,
     ) -> Any:
-        """Execute a task and await its result.
+        """Schedule a task and await its result.
 
         Supports both string-based (distributed) and typed (single-server) APIs:
-        - String-based: execute_task("add-task", {"a": 1, "b": 2})
-        - Typed: execute_task(AddTask, AddInput(a=1, b=2))
+        - String-based: schedule("add-task", {"a": 1, "b": 2})
+        - Typed: schedule(AddTask, AddInput(a=1, b=2))
 
         Args:
             task: The task kind (string) or task class/function to execute.
@@ -672,7 +719,7 @@ class WorkflowContextImpl(WorkflowContext):
         else:
             raise RuntimeError(f"Unknown task result type: {type(result)}")
 
-    def schedule_task(
+    def schedule_async(
         self,
         task: str | type[Any] | Callable[..., Any],
         input: Any,
@@ -683,8 +730,8 @@ class WorkflowContextImpl(WorkflowContext):
         """Schedule a task for execution, returns immediately.
 
         Supports both string-based (distributed) and typed (single-server) APIs:
-        - String-based: schedule_task("add-task", {"a": 1, "b": 2})
-        - Typed: schedule_task(AddTask, AddInput(a=1, b=2))
+        - String-based: schedule_async("add-task", {"a": 1, "b": 2})
+        - Typed: schedule_async(AddTask, AddInput(a=1, b=2))
 
         Args:
             task: The task kind (string) or task class/function to execute.
@@ -744,7 +791,7 @@ class WorkflowContextImpl(WorkflowContext):
         else:
             raise RuntimeError(f"Unknown task result type: {type(result)}")
 
-    async def execute_workflow(
+    async def schedule_workflow(
         self,
         workflow: str | type[Any] | Callable[..., Any],
         input: Any,
@@ -753,11 +800,11 @@ class WorkflowContextImpl(WorkflowContext):
         timeout: timedelta | None = None,
         queue: str | None = None,
     ) -> Any:
-        """Execute a child workflow and await its result.
+        """Schedule a child workflow and await its result.
 
         Supports both string-based (distributed) and typed (single-server) APIs:
-        - String-based: execute_workflow("order-workflow", {"order_id": "123"})
-        - Typed: execute_workflow(OrderWorkflow, OrderInput(order_id="123"))
+        - String-based: schedule_workflow("order-workflow", {"order_id": "123"})
+        - Typed: schedule_workflow(OrderWorkflow, OrderInput(order_id="123"))
 
         Args:
             workflow: The workflow kind (string) or workflow class/function to execute.
@@ -798,7 +845,7 @@ class WorkflowContextImpl(WorkflowContext):
         else:
             raise RuntimeError(f"Unknown child workflow result type: {type(result)}")
 
-    def schedule_workflow(
+    def schedule_workflow_async(
         self,
         workflow: str | type[Any] | Callable[..., Any],
         input: Any,
@@ -809,8 +856,8 @@ class WorkflowContextImpl(WorkflowContext):
         """Schedule a child workflow, returns immediately.
 
         Supports both string-based (distributed) and typed (single-server) APIs:
-        - String-based: schedule_workflow("order-workflow", {"order_id": "123"})
-        - Typed: schedule_workflow(OrderWorkflow, OrderInput(order_id="123"))
+        - String-based: schedule_workflow_async("order-workflow", {"order_id": "123"})
+        - Typed: schedule_workflow_async(OrderWorkflow, OrderInput(order_id="123"))
 
         Args:
             workflow: The workflow kind (string) or workflow class/function to execute.
@@ -872,7 +919,7 @@ class WorkflowContextImpl(WorkflowContext):
         duration = until - now
         await self.sleep(duration)
 
-    async def wait_for_promise(
+    async def promise(
         self,
         name: str,
         *,
@@ -904,9 +951,9 @@ class WorkflowContextImpl(WorkflowContext):
     ) -> T:
         # Signals are handled through the activation job mechanism
         # For now, this is a placeholder that will be implemented via promise
-        return await self.wait_for_promise(name, timeout=timeout, type_hint=type_hint)
+        return await self.promise(name, timeout=timeout, type_hint=type_hint)
 
-    async def get_state(
+    async def get(
         self,
         key: str,
         *,
@@ -918,12 +965,19 @@ class WorkflowContextImpl(WorkflowContext):
             return default
         return self._serializer.deserialize(bytes(value_bytes), type_hint)  # type: ignore[no-any-return]
 
-    async def set_state(self, key: str, value: Any) -> None:
+    async def set(self, key: str, value: Any) -> None:
         value_bytes = self._serializer.serialize(value)
         self._ffi.set_state(key, value_bytes)
 
-    async def clear_state(self, key: str) -> None:
+    async def clear(self, key: str) -> None:
         self._ffi.clear_state(key)
+
+    async def clear_all(self) -> None:
+        self._ffi.clear_all()
+
+    def state_keys(self) -> list[str]:
+        keys: list[str] = self._ffi.state_keys()
+        return keys
 
     async def run(
         self,

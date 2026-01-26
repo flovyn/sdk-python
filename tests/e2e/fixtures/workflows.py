@@ -142,14 +142,14 @@ class StatefulWorkflow:
 
     async def run(self, ctx: WorkflowContext, input: StatefulInput) -> StatefulOutput:
         # Set state
-        await ctx.set_state(input.key, input.value)
+        await ctx.set(input.key, input.value)
 
         # Get state back
-        stored = await ctx.get_state(input.key, type_hint=str)
+        stored = await ctx.get(input.key, type_hint=str)
 
         # Get all keys (by checking a few known ones)
         keys = []
-        if await ctx.get_state(input.key) is not None:
+        if await ctx.get(input.key) is not None:
             keys.append(input.key)
 
         return StatefulOutput(
@@ -222,7 +222,7 @@ class AwaitPromiseWorkflow:
     async def run(self, ctx: WorkflowContext, input: AwaitPromiseInput) -> AwaitPromiseOutput:
         timeout = timedelta(milliseconds=input.timeout_ms) if input.timeout_ms else None
 
-        value = await ctx.wait_for_promise(
+        value = await ctx.promise(
             input.promise_name,
             timeout=timeout,
             type_hint=Any,
@@ -240,7 +240,7 @@ class TaskSchedulingWorkflow:
         running_total = 0
 
         for i in range(input.count):
-            result = await ctx.execute_task(
+            result = await ctx.schedule(
                 "add-task",
                 {"a": running_total, "b": i + 1},
             )
@@ -262,7 +262,7 @@ class MultiTaskWorkflow:
         total = 0
 
         for i in range(input.count):
-            result = await ctx.execute_task(
+            result = await ctx.schedule(
                 "add-task",
                 {"a": i, "b": i},
             )
@@ -283,7 +283,7 @@ class ParallelTasksWorkflow:
         # Schedule all tasks
         handles = []
         for i in range(input.count):
-            handle = ctx.schedule_task(
+            handle = ctx.schedule_async(
                 "add-task",
                 {"a": i, "b": i},
             )
@@ -309,7 +309,7 @@ class ChildWorkflowWorkflow:
 
     async def run(self, ctx: WorkflowContext, input: ChildWorkflowInput) -> ChildWorkflowOutput:
         # Execute the echo workflow as a child
-        result = await ctx.execute_workflow(
+        result = await ctx.schedule_workflow(
             "echo-workflow",
             {"message": str(input.child_input)},
         )
@@ -333,7 +333,7 @@ class ChildFailureWorkflow:
         from flovyn.exceptions import ChildWorkflowFailed
 
         try:
-            await ctx.execute_workflow(
+            await ctx.schedule_workflow(
                 "failing-workflow",
                 {"error_message": input.error_message},
             )
@@ -364,7 +364,7 @@ class NestedChildWorkflow:
             return NestedChildOutput(result=f"leaf:{input.value}", levels=1)
         else:
             # Recursive case: call child workflow with reduced depth
-            child_result = await ctx.execute_workflow(
+            child_result = await ctx.schedule_workflow(
                 "nested-child-workflow",
                 {"depth": input.depth - 1, "value": input.value},
             )
@@ -404,7 +404,7 @@ class MixedCommandsWorkflow:
         await ctx.sleep(timedelta(milliseconds=100))
 
         # Step 3: Execute a task
-        task_result = await ctx.execute_task(
+        task_result = await ctx.schedule(
             "add-task",
             {"a": input.value, "b": 10},
         )
@@ -445,7 +445,7 @@ class FanOutFanInWorkflow:
         # Fan-out: Schedule all tasks in parallel
         handles = []
         for item in input.items:
-            handle = ctx.schedule_task(
+            handle = ctx.schedule_async(
                 "echo-task",
                 {"message": item},
             )
@@ -492,7 +492,7 @@ class LargeBatchWorkflow:
         # Schedule many tasks in parallel
         handles = []
         for i in range(input.count):
-            handle = ctx.schedule_task(
+            handle = ctx.schedule_async(
                 "add-task",
                 {"a": i, "b": 1},
             )
@@ -538,8 +538,8 @@ class MixedParallelWorkflow:
 
     async def run(self, ctx: WorkflowContext, input: MixedParallelInput) -> MixedParallelOutput:
         # Phase 1: Two parallel echo tasks
-        handle1 = ctx.schedule_task("echo-task", {"message": "task-1"})
-        handle2 = ctx.schedule_task("echo-task", {"message": "task-2"})
+        handle1 = ctx.schedule_async("echo-task", {"message": "task-1"})
+        handle2 = ctx.schedule_async("echo-task", {"message": "task-2"})
 
         result1 = await handle1.result()
         result2 = await handle2.result()
@@ -552,7 +552,7 @@ class MixedParallelWorkflow:
         # Phase 3: Three parallel add tasks
         handles = []
         for i in range(3):
-            handle = ctx.schedule_task("add-task", {"a": i, "b": i})
+            handle = ctx.schedule_async("add-task", {"a": i, "b": i})
             handles.append(handle)
 
         phase3_results = []
@@ -592,7 +592,7 @@ class ChildLoopWorkflow:
 
         for i in range(input.count):
             # Execute child echo workflow for each iteration
-            result = await ctx.execute_workflow(
+            result = await ctx.schedule_workflow(
                 "echo-workflow",
                 {"message": f"child-{i}"},
             )
@@ -651,11 +651,11 @@ class ComprehensiveWorkflow:
             "message": "state test",
             "nested": {"a": 1, "b": 2},
         }
-        await ctx.set_state(state_key, state_value)
+        await ctx.set(state_key, state_value)
         tests_passed.append("state_set")
 
         # Test 4: State get (should return what we just set)
-        retrieved = await ctx.get_state(state_key, type_hint=dict)
+        retrieved = await ctx.get(state_key, type_hint=dict)
 
         # Verify state matches
         state_matches = retrieved == state_value
@@ -716,7 +716,7 @@ class TaskSchedulerWorkflow:
                 task_result={"error": f"Unknown task: {input.task_name}"},
             )
 
-        result = await ctx.execute_task(input.task_name, input.task_input)
+        result = await ctx.schedule(input.task_name, input.task_input)
 
         return TaskSchedulerOutput(
             task_completed=True,
@@ -752,7 +752,7 @@ class TypedTaskWorkflow:
         from tests.e2e.fixtures.tasks import AddTask
 
         # Use the typed API: pass the class instead of string "add-task"
-        result = await ctx.execute_task(
+        result = await ctx.schedule(
             AddTask,  # Typed API: pass class instead of "add-task"
             {"a": input.a, "b": input.b},
         )

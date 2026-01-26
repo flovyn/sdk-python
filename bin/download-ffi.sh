@@ -22,7 +22,7 @@ fi
 
 # Default platforms if none specified
 if [[ $# -eq 0 ]]; then
-    PLATFORMS=("linux-x86_64" "linux-aarch64")
+    PLATFORMS=("linux-x86_64" "linux-aarch64" "macos-x86_64" "macos-aarch64")
 else
     PLATFORMS=("$@")
 fi
@@ -50,8 +50,8 @@ CURRENT_PLATFORM=""
 case "$(uname -s)-$(uname -m)" in
     Linux-x86_64)  CURRENT_PLATFORM="linux-x86_64" ;;
     Linux-aarch64) CURRENT_PLATFORM="linux-aarch64" ;;
-    Darwin-x86_64) CURRENT_PLATFORM="darwin-x86_64" ;;
-    Darwin-arm64)  CURRENT_PLATFORM="darwin-aarch64" ;;
+    Darwin-x86_64) CURRENT_PLATFORM="macos-x86_64" ;;
+    Darwin-arm64)  CURRENT_PLATFORM="macos-aarch64" ;;
 esac
 
 if [[ -n "$CURRENT_PLATFORM" && -d "${NATIVES_DIR}/${CURRENT_PLATFORM}" ]]; then
