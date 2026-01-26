@@ -542,6 +542,8 @@ def _uniffi_check_api_checksums(lib):
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_flovyn_worker_ffi_checksum_method_ffitaskcontext_workflow_execution_id() != 43823:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_clear_all() != 4373:
+        raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_clear_state() != 41051:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_command_count() != 14060:
@@ -967,6 +969,11 @@ _UniffiLib.uniffi_flovyn_worker_ffi_fn_free_ffiworkflowcontext.argtypes = (
     ctypes.POINTER(_UniffiRustCallStatus),
 )
 _UniffiLib.uniffi_flovyn_worker_ffi_fn_free_ffiworkflowcontext.restype = None
+_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_clear_all.argtypes = (
+    ctypes.c_void_p,
+    ctypes.POINTER(_UniffiRustCallStatus),
+)
+_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_clear_all.restype = None
 _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_clear_state.argtypes = (
     ctypes.c_void_p,
     _UniffiRustBuffer,
@@ -1467,6 +1474,9 @@ _UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffitaskcontext_task_executio
 _UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffitaskcontext_workflow_execution_id.argtypes = (
 )
 _UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffitaskcontext_workflow_execution_id.restype = ctypes.c_uint16
+_UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_clear_all.argtypes = (
+)
+_UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_clear_all.restype = ctypes.c_uint16
 _UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_clear_state.argtypes = (
 )
 _UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_clear_state.restype = ctypes.c_uint16
@@ -2971,6 +2981,14 @@ class FfiWorkflowContextProtocol(typing.Protocol):
     - Only generates commands for NEW operations
     """
 
+    def clear_all(self, ):
+        """
+        Clear all workflow state.
+
+        Generates ClearState commands for all keys and clears local state.
+        """
+
+        raise NotImplementedError
     def clear_state(self, key: "str"):
         """
         Clear workflow state.
@@ -3144,6 +3162,20 @@ class FfiWorkflowContext:
         inst = cls.__new__(cls)
         inst._pointer = pointer
         return inst
+
+
+    def clear_all(self, ) -> None:
+        """
+        Clear all workflow state.
+
+        Generates ClearState commands for all keys and clears local state.
+        """
+
+        _uniffi_rust_call(_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_clear_all,self._uniffi_clone_pointer(),)
+
+
+
+
 
 
     def clear_state(self, key: "str") -> None:

@@ -186,31 +186,31 @@ class OrderProcessingWorkflow:
         ctx.logger.info(f"Starting order processing for {order_id}")
 
         # Track order status in workflow state
-        await ctx.set_state("status", OrderStatus.PENDING.value)
+        await ctx.set("status", OrderStatus.PENDING.value)
 
         try:
             # Step 1: Validate order
             ctx.logger.info("Validating order")
-            validation = await ctx.execute_task(
+            validation = await ctx.schedule(
                 ValidateOrderTask,
                 ValidationInput(order_id=order_id, items=input.items),
             )
 
             if not validation.valid:
-                await ctx.set_state("status", OrderStatus.FAILED.value)
+                await ctx.set("status", OrderStatus.FAILED.value)
                 return OrderResult(
                     order_id=order_id,
                     status=OrderStatus.FAILED,
                     error=f"Validation failed: {', '.join(validation.issues)}",
                 )
 
-            await ctx.set_state("status", OrderStatus.VALIDATED.value)
+            await ctx.set("status", OrderStatus.VALIDATED.value)
 
             # Step 2: Process payment
             ctx.logger.info("Processing payment")
             total_amount = sum(item.price * item.quantity for item in input.items)
 
-            payment = await ctx.execute_task(
+            payment = await ctx.schedule(
                 ProcessPaymentTask,
                 PaymentInput(
                     order_id=order_id,
@@ -219,18 +219,18 @@ class OrderProcessingWorkflow:
                 ),
             )
 
-            await ctx.set_state("status", OrderStatus.PAID.value)
-            await ctx.set_state("transaction_id", payment.transaction_id)
+            await ctx.set("status", OrderStatus.PAID.value)
+            await ctx.set("transaction_id", payment.transaction_id)
 
             # Step 3: Fulfill order
             ctx.logger.info("Fulfilling order")
-            fulfillment = await ctx.execute_task(
+            fulfillment = await ctx.schedule(
                 FulfillOrderTask,
                 FulfillmentInput(order_id=order_id, items=input.items),
             )
 
-            await ctx.set_state("status", OrderStatus.FULFILLED.value)
-            await ctx.set_state("tracking_number", fulfillment.tracking_number)
+            await ctx.set("status", OrderStatus.FULFILLED.value)
+            await ctx.set("tracking_number", fulfillment.tracking_number)
 
             ctx.logger.info(f"Order {order_id} completed successfully")
 
@@ -242,7 +242,7 @@ class OrderProcessingWorkflow:
 
         except TaskFailed as e:
             ctx.logger.error(f"Order {order_id} failed: {e.message}")
-            await ctx.set_state("status", OrderStatus.FAILED.value)
+            await ctx.set("status", OrderStatus.FAILED.value)
 
             return OrderResult(
                 order_id=order_id,

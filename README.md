@@ -54,7 +54,7 @@ class HelloWorldWorkflow:
         timestamp = ctx.current_time().isoformat()
 
         # Execute a task
-        result = await ctx.execute_task(
+        result = await ctx.schedule(
             GreetTask,
             GreetInput(name=input.name),
         )
@@ -118,10 +118,14 @@ The workflow context provides deterministic APIs:
 - `ctx.current_time()` - Get deterministic current time
 - `ctx.random_uuid()` - Generate deterministic UUID
 - `ctx.random()` - Get deterministic random number
-- `ctx.execute_task(Task, input)` - Execute a task
+- `ctx.schedule(Task, input)` - Execute a task and await result
+- `ctx.schedule_async(Task, input)` - Execute a task, returns TaskHandle
+- `ctx.schedule_workflow(Workflow, input)` - Execute a child workflow and await result
 - `ctx.sleep(duration)` - Durable timer
-- `ctx.wait_for_promise(name)` - Wait for external event
-- `ctx.get_state(key)` / `ctx.set_state(key, value)` - Workflow state
+- `ctx.promise(name)` - Wait for external event
+- `ctx.get(key)` / `ctx.set(key, value)` - Workflow state
+- `ctx.clear(key)` / `ctx.clear_all()` - Clear workflow state
+- `ctx.state_keys()` - Get all state keys
 - `ctx.run(name, fn)` - Execute side effects (cached on replay)
 
 ### TaskContext

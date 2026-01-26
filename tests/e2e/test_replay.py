@@ -15,7 +15,7 @@ async def test_mixed_commands_workflow(env: FlovynTestEnvironment) -> None:
     This validates per-type sequence matching during replay:
     1. Operation (ctx.run)
     2. Timer (ctx.sleep)
-    3. Task (ctx.execute_task)
+    3. Task (ctx.schedule)
     4. Another operation
 
     The workflow will be replayed multiple times as each async operation

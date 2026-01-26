@@ -51,7 +51,7 @@ class HelloWorldWorkflow:
         ctx.logger.info(f"Starting workflow at {timestamp}")
 
         # Execute a task
-        result = await ctx.execute_task(
+        result = await ctx.schedule(
             GreetTask,
             GreetInput(name=input.name),
         )
