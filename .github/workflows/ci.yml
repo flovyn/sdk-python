@@ -9,7 +9,7 @@ on:
 env:
   # Pin to specific sdk-rust release version
   # Update this when upgrading to a new FFI version
-  FFI_VERSION: v0.1.7
+  FFI_VERSION: v0.1.10
 
 jobs:
   build:
