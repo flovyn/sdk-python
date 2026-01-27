@@ -64,7 +64,7 @@ async def main() -> None:
     # Build the client
     client = (
         FlovynClient.builder()
-        .server_address("localhost", 9090)
+        .server_address("http://localhost:9090")
         .org_id("my-org")
         .queue("hello-world-queue")
         .worker_token("my-worker-token")

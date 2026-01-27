@@ -24,8 +24,7 @@ class FlovynClientBuilder:
     """Builder for configuring and creating a FlovynClient."""
 
     def __init__(self) -> None:
-        self._server_host: str | None = None
-        self._server_port: int | None = None
+        self._server_url: str | None = None
         self._org_id: str | None = None
         self._queue: str = "default"
         self._worker_token: str | None = None
@@ -37,18 +36,16 @@ class FlovynClientBuilder:
         self._max_concurrent_workflows: int | None = None
         self._max_concurrent_tasks: int | None = None
 
-    def server_address(self, host: str, port: int = 9090) -> FlovynClientBuilder:
-        """Set the Flovyn server address.
+    def server_address(self, url: str) -> FlovynClientBuilder:
+        """Set the Flovyn server URL.
 
         Args:
-            host: Server hostname or IP address.
-            port: Server gRPC port (default 9090).
+            url: Full server URL including scheme (e.g., "https://worker.flovyn.ai" or "http://localhost:9090").
 
         Returns:
             The builder for chaining.
         """
-        self._server_host = host
-        self._server_port = port
+        self._server_url = url
         return self
 
     def org_id(self, org_id: str) -> FlovynClientBuilder:
@@ -205,14 +202,13 @@ class FlovynClientBuilder:
         Raises:
             ConfigurationError: If required configuration is missing.
         """
-        if not self._server_host:
-            raise ConfigurationError("Server address is required. Use .server_address(host, port)")
+        if not self._server_url:
+            raise ConfigurationError("Server URL is required. Use .server_address(url)")
         if not self._org_id:
             raise ConfigurationError("Organization ID is required. Use .org_id(org_id)")
 
         return FlovynClient(
-            server_host=self._server_host,
-            server_port=self._server_port or 9090,
+            server_url=self._server_url,
             org_id=self._org_id,
             queue=self._queue,
             worker_token=self._worker_token,
@@ -231,8 +227,7 @@ class FlovynClient:
 
     def __init__(
         self,
-        server_host: str,
-        server_port: int,
+        server_url: str,
         org_id: str,
         queue: str,
         worker_token: str | None,
@@ -244,8 +239,7 @@ class FlovynClient:
         max_concurrent_workflows: int | None,
         max_concurrent_tasks: int | None,
     ) -> None:
-        self._server_host = server_host
-        self._server_port = server_port
+        self._server_url = server_url
         self._org_id = org_id
         self._queue = queue
         self._worker_token = worker_token
@@ -276,7 +270,7 @@ class FlovynClient:
     @property
     def server_url(self) -> str:
         """Get the server URL."""
-        return f"http://{self._server_host}:{self._server_port}"
+        return self._server_url
 
     async def start(self) -> None:
         """Start the worker and begin processing.
