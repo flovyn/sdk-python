@@ -36,7 +36,7 @@ class FlovynClientBuilder:
         self._max_concurrent_workflows: int | None = None
         self._max_concurrent_tasks: int | None = None
 
-    def server_address(self, url: str) -> FlovynClientBuilder:
+    def server_url(self, url: str) -> FlovynClientBuilder:
         """Set the Flovyn server URL.
 
         Args:
@@ -203,7 +203,7 @@ class FlovynClientBuilder:
             ConfigurationError: If required configuration is missing.
         """
         if not self._server_url:
-            raise ConfigurationError("Server URL is required. Use .server_address(url)")
+            raise ConfigurationError("Server URL is required. Use .server_url(url)")
         if not self._org_id:
             raise ConfigurationError("Organization ID is required. Use .org_id(org_id)")
 

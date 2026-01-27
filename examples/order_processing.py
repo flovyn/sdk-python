@@ -255,7 +255,7 @@ async def main() -> None:
     """Run the order processing example."""
     client = (
         FlovynClient.builder()
-        .server_address("http://localhost:9090")
+        .server_url("http://localhost:9090")
         .org_id("my-org")
         .queue("order-queue")
         .worker_token("my-worker-token")

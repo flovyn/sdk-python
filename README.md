@@ -71,7 +71,7 @@ from flovyn import FlovynClient
 async def main():
     client = (
         FlovynClient.builder()
-        .server_address("localhost", 9090)
+        .server_url("http://localhost:9090")
         .org_id("my-org")
         .queue("default")
         .worker_token("my-token")

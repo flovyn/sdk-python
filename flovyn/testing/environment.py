@@ -121,7 +121,7 @@ class FlovynTestEnvironment:
 
         # Build the client
         builder = FlovynClient.builder()
-        builder.server_address(f"http://{self._harness.grpc_host}:{self._harness.grpc_port}")
+        builder.server_url(f"http://{self._harness.grpc_host}:{self._harness.grpc_port}")
         builder.org_id(org_id)
         builder.queue(self._queue)
         builder.worker_token(worker_token)
