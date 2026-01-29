@@ -57,17 +57,20 @@ async def env(test_harness) -> AsyncGenerator[FlovynTestEnvironment, None]:
         ChildWorkflowWorkflow,
         ComprehensiveWorkflow,
         DoublerWorkflow,
+        DrainSignalsWorkflow,
         EchoWorkflow,
         FailingWorkflow,
         FanOutFanInWorkflow,
         LargeBatchWorkflow,
         MixedCommandsWorkflow,
         MixedParallelWorkflow,
+        MultiSignalWorkflow,
         MultiTaskWorkflow,
         NestedChildWorkflow,
         ParallelTasksWorkflow,
         RandomWorkflow,
         RunOperationWorkflow,
+        SignalWorkflow,
         SleepWorkflow,
         StatefulWorkflow,
         TaskSchedulerWorkflow,
@@ -102,6 +105,9 @@ async def env(test_harness) -> AsyncGenerator[FlovynTestEnvironment, None]:
     environment.register_workflow(ComprehensiveWorkflow)
     environment.register_workflow(TaskSchedulerWorkflow)
     environment.register_workflow(TypedTaskWorkflow)
+    environment.register_workflow(SignalWorkflow)
+    environment.register_workflow(MultiSignalWorkflow)
+    environment.register_workflow(DrainSignalsWorkflow)
 
     # Register all tasks
     environment.register_task(EchoTask)

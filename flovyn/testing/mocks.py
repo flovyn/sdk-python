@@ -277,7 +277,7 @@ class MockWorkflowContext(WorkflowContext):
         self._workflow_failures: dict[str, Exception] = {}
         self._promise_values: dict[str, Any] = {}
         self._promise_rejections: dict[str, str] = {}
-        self._signal_values: dict[str, Any] = {}
+        self._signal_queue: list[tuple[str, Any]] = []  # Queue of (name, value) tuples
         self._run_results: dict[str, Any] = {}
         self._cancellation_requested = False
         self._logger = logging.getLogger(f"flovyn.test.workflow.{self._workflow_execution_id}")
@@ -468,15 +468,53 @@ class MockWorkflowContext(WorkflowContext):
 
     async def wait_for_signal(
         self,
-        name: str,
+        name: str | None = None,
         *,
         timeout: timedelta | None = None,
         type_hint: type[T] = Any,  # type: ignore[assignment]
     ) -> T:
-        if name in self._signal_values:
-            return self._signal_values[name]  # type: ignore[no-any-return]
+        """Wait for the next signal in the queue.
 
-        raise TimeoutError(f"Signal '{name}' not received in mock")
+        In mock context, this returns the next signal from the queue
+        (or raises if queue is empty).
+
+        Args:
+            name: Optional signal name (currently ignored).
+            timeout: Optional timeout (ignored in mock).
+            type_hint: Type hint for the signal payload.
+
+        Returns:
+            The signal payload.
+
+        Raises:
+            TimeoutError: If no signals are in the queue.
+        """
+        if self._signal_queue:
+            _, value = self._signal_queue.pop(0)
+            return value  # type: ignore[no-any-return]
+
+        raise TimeoutError("No signals in queue (mock)")
+
+    def has_signal(self) -> bool:
+        """Check if any signals are pending in the queue."""
+        return len(self._signal_queue) > 0
+
+    def pending_signal_count(self) -> int:
+        """Get the number of pending signals."""
+        return len(self._signal_queue)
+
+    def drain_signals(
+        self,
+        type_hint: type[T] = Any,  # type: ignore[assignment]
+    ) -> list[T]:
+        """Drain all pending signals from the queue.
+
+        Returns:
+            A list of signal payloads.
+        """
+        values = [value for _, value in self._signal_queue]
+        self._signal_queue.clear()
+        return values  # type: ignore[return-value]
 
     async def get(
         self,
@@ -628,13 +666,16 @@ class MockWorkflowContext(WorkflowContext):
         self._promise_rejections[name] = error
 
     def mock_signal_value(self, name: str, value: Any) -> None:
-        """Configure a signal to deliver the given value.
+        """Add a signal to the signal queue.
+
+        Signals are consumed in order by wait_for_signal().
+        Call multiple times to queue multiple signals.
 
         Args:
             name: The signal name.
             value: The signal payload.
         """
-        self._signal_values[name] = value
+        self._signal_queue.append((name, value))
 
     def mock_run_result(self, name: str, result: Any) -> None:
         """Configure a ctx.run() operation to return the given result.

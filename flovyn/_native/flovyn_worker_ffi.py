@@ -468,6 +468,10 @@ def _uniffi_check_api_checksums(lib):
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_flovyn_worker_ffi_checksum_method_coreclient_resolve_promise() != 56407:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    if lib.uniffi_flovyn_worker_ffi_checksum_method_coreclient_signal_with_start_workflow() != 57504:
+        raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    if lib.uniffi_flovyn_worker_ffi_checksum_method_coreclient_signal_workflow() != 6467:
+        raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_flovyn_worker_ffi_checksum_method_coreclient_start_workflow() != 16527:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_flovyn_worker_ffi_checksum_method_coreworker_complete_task() != 65396:
@@ -552,9 +556,15 @@ def _uniffi_check_api_checksums(lib):
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_current_time_millis() != 38125:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_drain_signals() != 26519:
+        raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_get_state() != 9129:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_has_signal() != 27653:
+        raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_is_cancellation_requested() != 18572:
+        raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_pending_signal_count() != 13337:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_random() != 22015:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
@@ -577,6 +587,8 @@ def _uniffi_check_api_checksums(lib):
     if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_state_keys() != 6962:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_take_commands() != 63915:
+        raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_wait_for_signal() != 4847:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_workflow_execution_id() != 54462:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
@@ -733,6 +745,25 @@ _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_coreclient_resolve_promise.argtype
     ctypes.POINTER(_UniffiRustCallStatus),
 )
 _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_coreclient_resolve_promise.restype = None
+_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_coreclient_signal_with_start_workflow.argtypes = (
+    ctypes.c_void_p,
+    _UniffiRustBuffer,
+    _UniffiRustBuffer,
+    _UniffiRustBuffer,
+    _UniffiRustBuffer,
+    _UniffiRustBuffer,
+    _UniffiRustBuffer,
+    ctypes.POINTER(_UniffiRustCallStatus),
+)
+_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_coreclient_signal_with_start_workflow.restype = _UniffiRustBuffer
+_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_coreclient_signal_workflow.argtypes = (
+    ctypes.c_void_p,
+    _UniffiRustBuffer,
+    _UniffiRustBuffer,
+    _UniffiRustBuffer,
+    ctypes.POINTER(_UniffiRustCallStatus),
+)
+_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_coreclient_signal_workflow.restype = _UniffiRustBuffer
 _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_coreclient_start_workflow.argtypes = (
     ctypes.c_void_p,
     _UniffiRustBuffer,
@@ -997,17 +1028,32 @@ _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_current_time_mi
     ctypes.POINTER(_UniffiRustCallStatus),
 )
 _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_current_time_millis.restype = ctypes.c_int64
+_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_drain_signals.argtypes = (
+    ctypes.c_void_p,
+    ctypes.POINTER(_UniffiRustCallStatus),
+)
+_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_drain_signals.restype = _UniffiRustBuffer
 _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_get_state.argtypes = (
     ctypes.c_void_p,
     _UniffiRustBuffer,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
 _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_get_state.restype = _UniffiRustBuffer
+_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_has_signal.argtypes = (
+    ctypes.c_void_p,
+    ctypes.POINTER(_UniffiRustCallStatus),
+)
+_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_has_signal.restype = ctypes.c_int8
 _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_is_cancellation_requested.argtypes = (
     ctypes.c_void_p,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
 _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_is_cancellation_requested.restype = ctypes.c_int8
+_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_pending_signal_count.argtypes = (
+    ctypes.c_void_p,
+    ctypes.POINTER(_UniffiRustCallStatus),
+)
+_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_pending_signal_count.restype = ctypes.c_uint32
 _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_random.argtypes = (
     ctypes.c_void_p,
     ctypes.POINTER(_UniffiRustCallStatus),
@@ -1078,6 +1124,11 @@ _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_take_commands.a
     ctypes.POINTER(_UniffiRustCallStatus),
 )
 _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_take_commands.restype = _UniffiRustBuffer
+_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_wait_for_signal.argtypes = (
+    ctypes.c_void_p,
+    ctypes.POINTER(_UniffiRustCallStatus),
+)
+_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_wait_for_signal.restype = _UniffiRustBuffer
 _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_workflow_execution_id.argtypes = (
     ctypes.c_void_p,
     ctypes.POINTER(_UniffiRustCallStatus),
@@ -1363,6 +1414,12 @@ _UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_coreclient_reject_promise.re
 _UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_coreclient_resolve_promise.argtypes = (
 )
 _UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_coreclient_resolve_promise.restype = ctypes.c_uint16
+_UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_coreclient_signal_with_start_workflow.argtypes = (
+)
+_UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_coreclient_signal_with_start_workflow.restype = ctypes.c_uint16
+_UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_coreclient_signal_workflow.argtypes = (
+)
+_UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_coreclient_signal_workflow.restype = ctypes.c_uint16
 _UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_coreclient_start_workflow.argtypes = (
 )
 _UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_coreclient_start_workflow.restype = ctypes.c_uint16
@@ -1489,12 +1546,21 @@ _UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_create_pr
 _UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_current_time_millis.argtypes = (
 )
 _UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_current_time_millis.restype = ctypes.c_uint16
+_UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_drain_signals.argtypes = (
+)
+_UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_drain_signals.restype = ctypes.c_uint16
 _UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_get_state.argtypes = (
 )
 _UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_get_state.restype = ctypes.c_uint16
+_UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_has_signal.argtypes = (
+)
+_UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_has_signal.restype = ctypes.c_uint16
 _UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_is_cancellation_requested.argtypes = (
 )
 _UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_is_cancellation_requested.restype = ctypes.c_uint16
+_UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_pending_signal_count.argtypes = (
+)
+_UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_pending_signal_count.restype = ctypes.c_uint16
 _UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_random.argtypes = (
 )
 _UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_random.restype = ctypes.c_uint16
@@ -1528,6 +1594,9 @@ _UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_state_key
 _UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_take_commands.argtypes = (
 )
 _UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_take_commands.restype = ctypes.c_uint16
+_UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_wait_for_signal.argtypes = (
+)
+_UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_wait_for_signal.restype = ctypes.c_uint16
 _UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_workflow_execution_id.argtypes = (
 )
 _UniffiLib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_workflow_execution_id.restype = ctypes.c_uint16
@@ -1746,6 +1815,41 @@ class CoreClientProtocol(typing.Protocol):
         """
 
         raise NotImplementedError
+    def signal_with_start_workflow(self, workflow_id: "str",workflow_kind: "str",workflow_input: "bytes",queue: "typing.Optional[str]",signal_name: "str",signal_value: "bytes"):
+        """
+        Send a signal to an existing workflow, or create a new workflow and send the signal.
+
+        This is an atomic operation - either the workflow exists and receives the signal,
+        or a new workflow is created with the signal. This prevents race conditions
+        where a workflow might be created between checking for existence and signaling.
+
+        # Arguments
+        * `workflow_id` - The workflow ID (used as idempotency key)
+        * `workflow_kind` - The type/kind of workflow to create if it doesn't exist
+        * `workflow_input` - Serialized input for the workflow (JSON bytes)
+        * `queue` - The task queue
+        * `signal_name` - The name of the signal
+        * `signal_value` - Serialized signal value (JSON bytes)
+
+        # Returns
+        Information about whether the workflow was created and the signal event sequence.
+        """
+
+        raise NotImplementedError
+    def signal_workflow(self, workflow_execution_id: "str",signal_name: "str",signal_value: "bytes"):
+        """
+        Send a signal to an existing workflow.
+
+        # Arguments
+        * `workflow_execution_id` - The workflow execution ID
+        * `signal_name` - The name of the signal
+        * `signal_value` - Serialized signal value (JSON bytes)
+
+        # Returns
+        The sequence number of the signal event.
+        """
+
+        raise NotImplementedError
     def start_workflow(self, workflow_kind: "str",input: "bytes",queue: "typing.Optional[str]",workflow_version: "typing.Optional[str]",idempotency_key: "typing.Optional[str]"):
         """
         Start a new workflow execution.
@@ -1902,6 +2006,82 @@ class CoreClient:
         _UniffiConverterString.lower(promise_id),
         _UniffiConverterBytes.lower(value))
 
+
+
+
+
+
+    def signal_with_start_workflow(self, workflow_id: "str",workflow_kind: "str",workflow_input: "bytes",queue: "typing.Optional[str]",signal_name: "str",signal_value: "bytes") -> "SignalWithStartResponse":
+        """
+        Send a signal to an existing workflow, or create a new workflow and send the signal.
+
+        This is an atomic operation - either the workflow exists and receives the signal,
+        or a new workflow is created with the signal. This prevents race conditions
+        where a workflow might be created between checking for existence and signaling.
+
+        # Arguments
+        * `workflow_id` - The workflow ID (used as idempotency key)
+        * `workflow_kind` - The type/kind of workflow to create if it doesn't exist
+        * `workflow_input` - Serialized input for the workflow (JSON bytes)
+        * `queue` - The task queue
+        * `signal_name` - The name of the signal
+        * `signal_value` - Serialized signal value (JSON bytes)
+
+        # Returns
+        Information about whether the workflow was created and the signal event sequence.
+        """
+
+        _UniffiConverterString.check_lower(workflow_id)
+        
+        _UniffiConverterString.check_lower(workflow_kind)
+        
+        _UniffiConverterBytes.check_lower(workflow_input)
+        
+        _UniffiConverterOptionalString.check_lower(queue)
+        
+        _UniffiConverterString.check_lower(signal_name)
+        
+        _UniffiConverterBytes.check_lower(signal_value)
+        
+        return _UniffiConverterTypeSignalWithStartResponse.lift(
+            _uniffi_rust_call_with_error(_UniffiConverterTypeFfiError,_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_coreclient_signal_with_start_workflow,self._uniffi_clone_pointer(),
+        _UniffiConverterString.lower(workflow_id),
+        _UniffiConverterString.lower(workflow_kind),
+        _UniffiConverterBytes.lower(workflow_input),
+        _UniffiConverterOptionalString.lower(queue),
+        _UniffiConverterString.lower(signal_name),
+        _UniffiConverterBytes.lower(signal_value))
+        )
+
+
+
+
+
+    def signal_workflow(self, workflow_execution_id: "str",signal_name: "str",signal_value: "bytes") -> "SignalWorkflowResponse":
+        """
+        Send a signal to an existing workflow.
+
+        # Arguments
+        * `workflow_execution_id` - The workflow execution ID
+        * `signal_name` - The name of the signal
+        * `signal_value` - Serialized signal value (JSON bytes)
+
+        # Returns
+        The sequence number of the signal event.
+        """
+
+        _UniffiConverterString.check_lower(workflow_execution_id)
+        
+        _UniffiConverterString.check_lower(signal_name)
+        
+        _UniffiConverterBytes.check_lower(signal_value)
+        
+        return _UniffiConverterTypeSignalWorkflowResponse.lift(
+            _uniffi_rust_call_with_error(_UniffiConverterTypeFfiError,_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_coreclient_signal_workflow,self._uniffi_clone_pointer(),
+        _UniffiConverterString.lower(workflow_execution_id),
+        _UniffiConverterString.lower(signal_name),
+        _UniffiConverterBytes.lower(signal_value))
+        )
 
 
 
@@ -3021,15 +3201,33 @@ class FfiWorkflowContextProtocol(typing.Protocol):
         """
 
         raise NotImplementedError
+    def drain_signals(self, ):
+        """
+        Drain all pending signals from the queue.
+        """
+
+        raise NotImplementedError
     def get_state(self, key: "str"):
         """
         Get workflow state.
         """
 
         raise NotImplementedError
+    def has_signal(self, ):
+        """
+        Check if any signals are pending in the queue.
+        """
+
+        raise NotImplementedError
     def is_cancellation_requested(self, ):
         """
         Check if cancellation has been requested.
+        """
+
+        raise NotImplementedError
+    def pending_signal_count(self, ):
+        """
+        Get the number of pending signals.
         """
 
         raise NotImplementedError
@@ -3118,6 +3316,16 @@ class FfiWorkflowContextProtocol(typing.Protocol):
         Take all generated commands (only new ones, not replayed).
 
         This drains the command buffer and returns the commands.
+        """
+
+        raise NotImplementedError
+    def wait_for_signal(self, ):
+        """
+        Wait for the next signal in the queue.
+
+        Returns:
+        - `Received` if a signal is available
+        - `Pending` if no signal available - workflow should suspend
         """
 
         raise NotImplementedError
@@ -3246,6 +3454,19 @@ class FfiWorkflowContext:
 
 
 
+    def drain_signals(self, ) -> "typing.List[FfiSignalEvent]":
+        """
+        Drain all pending signals from the queue.
+        """
+
+        return _UniffiConverterSequenceTypeFfiSignalEvent.lift(
+            _uniffi_rust_call(_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_drain_signals,self._uniffi_clone_pointer(),)
+        )
+
+
+
+
+
     def get_state(self, key: "str") -> "typing.Optional[bytes]":
         """
         Get workflow state.
@@ -3262,6 +3483,19 @@ class FfiWorkflowContext:
 
 
 
+    def has_signal(self, ) -> "bool":
+        """
+        Check if any signals are pending in the queue.
+        """
+
+        return _UniffiConverterBool.lift(
+            _uniffi_rust_call(_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_has_signal,self._uniffi_clone_pointer(),)
+        )
+
+
+
+
+
     def is_cancellation_requested(self, ) -> "bool":
         """
         Check if cancellation has been requested.
@@ -3269,6 +3503,19 @@ class FfiWorkflowContext:
 
         return _UniffiConverterBool.lift(
             _uniffi_rust_call(_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_is_cancellation_requested,self._uniffi_clone_pointer(),)
+        )
+
+
+
+
+
+    def pending_signal_count(self, ) -> "int":
+        """
+        Get the number of pending signals.
+        """
+
+        return _UniffiConverterUInt32.lift(
+            _uniffi_rust_call(_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_pending_signal_count,self._uniffi_clone_pointer(),)
         )
 
 
@@ -3476,6 +3723,23 @@ class FfiWorkflowContext:
 
         return _UniffiConverterSequenceTypeFfiWorkflowCommand.lift(
             _uniffi_rust_call(_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_take_commands,self._uniffi_clone_pointer(),)
+        )
+
+
+
+
+
+    def wait_for_signal(self, ) -> "FfiSignalResult":
+        """
+        Wait for the next signal in the queue.
+
+        Returns:
+        - `Received` if a signal is available
+        - `Pending` if no signal available - workflow should suspend
+        """
+
+        return _UniffiConverterTypeFfiSignalResult.lift(
+            _uniffi_rust_call(_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_wait_for_signal,self._uniffi_clone_pointer(),)
         )
 
 
@@ -3852,6 +4116,54 @@ class _UniffiConverterTypeFfiReplayEvent(_UniffiConverterRustBuffer):
         _UniffiConverterInt64.write(value.timestamp_ms, buf)
 
 
+class FfiSignalEvent:
+    """
+    A signal event from the signal queue.
+    """
+
+    signal_name: "str"
+    """
+    Signal name.
+    """
+
+    value: "bytes"
+    """
+    Serialized value as JSON bytes.
+    """
+
+    def __init__(self, *, signal_name: "str", value: "bytes"):
+        self.signal_name = signal_name
+        self.value = value
+
+    def __str__(self):
+        return "FfiSignalEvent(signal_name={}, value={})".format(self.signal_name, self.value)
+
+    def __eq__(self, other):
+        if self.signal_name != other.signal_name:
+            return False
+        if self.value != other.value:
+            return False
+        return True
+
+class _UniffiConverterTypeFfiSignalEvent(_UniffiConverterRustBuffer):
+    @staticmethod
+    def read(buf):
+        return FfiSignalEvent(
+            signal_name=_UniffiConverterString.read(buf),
+            value=_UniffiConverterBytes.read(buf),
+        )
+
+    @staticmethod
+    def check_lower(value):
+        _UniffiConverterString.check_lower(value.signal_name)
+        _UniffiConverterBytes.check_lower(value.value)
+
+    @staticmethod
+    def write(value, buf):
+        _UniffiConverterString.write(value.signal_name, buf)
+        _UniffiConverterBytes.write(value.value, buf)
+
+
 class LifecycleEvent:
     """
     Lifecycle event for worker status changes.
@@ -3979,6 +4291,102 @@ class _UniffiConverterTypeOAuth2Credentials(_UniffiConverterRustBuffer):
         _UniffiConverterString.write(value.client_secret, buf)
         _UniffiConverterString.write(value.token_endpoint, buf)
         _UniffiConverterOptionalString.write(value.scopes, buf)
+
+
+class SignalWithStartResponse:
+    """
+    Result of signal-with-start operation.
+    """
+
+    workflow_execution_id: "str"
+    """
+    The workflow execution ID.
+    """
+
+    workflow_created: "bool"
+    """
+    Whether the workflow was created (vs already existed).
+    """
+
+    signal_event_sequence: "int"
+    """
+    Sequence number of the signal event.
+    """
+
+    def __init__(self, *, workflow_execution_id: "str", workflow_created: "bool", signal_event_sequence: "int"):
+        self.workflow_execution_id = workflow_execution_id
+        self.workflow_created = workflow_created
+        self.signal_event_sequence = signal_event_sequence
+
+    def __str__(self):
+        return "SignalWithStartResponse(workflow_execution_id={}, workflow_created={}, signal_event_sequence={})".format(self.workflow_execution_id, self.workflow_created, self.signal_event_sequence)
+
+    def __eq__(self, other):
+        if self.workflow_execution_id != other.workflow_execution_id:
+            return False
+        if self.workflow_created != other.workflow_created:
+            return False
+        if self.signal_event_sequence != other.signal_event_sequence:
+            return False
+        return True
+
+class _UniffiConverterTypeSignalWithStartResponse(_UniffiConverterRustBuffer):
+    @staticmethod
+    def read(buf):
+        return SignalWithStartResponse(
+            workflow_execution_id=_UniffiConverterString.read(buf),
+            workflow_created=_UniffiConverterBool.read(buf),
+            signal_event_sequence=_UniffiConverterInt64.read(buf),
+        )
+
+    @staticmethod
+    def check_lower(value):
+        _UniffiConverterString.check_lower(value.workflow_execution_id)
+        _UniffiConverterBool.check_lower(value.workflow_created)
+        _UniffiConverterInt64.check_lower(value.signal_event_sequence)
+
+    @staticmethod
+    def write(value, buf):
+        _UniffiConverterString.write(value.workflow_execution_id, buf)
+        _UniffiConverterBool.write(value.workflow_created, buf)
+        _UniffiConverterInt64.write(value.signal_event_sequence, buf)
+
+
+class SignalWorkflowResponse:
+    """
+    Result of signaling a workflow.
+    """
+
+    signal_event_sequence: "int"
+    """
+    Sequence number of the signal event.
+    """
+
+    def __init__(self, *, signal_event_sequence: "int"):
+        self.signal_event_sequence = signal_event_sequence
+
+    def __str__(self):
+        return "SignalWorkflowResponse(signal_event_sequence={})".format(self.signal_event_sequence)
+
+    def __eq__(self, other):
+        if self.signal_event_sequence != other.signal_event_sequence:
+            return False
+        return True
+
+class _UniffiConverterTypeSignalWorkflowResponse(_UniffiConverterRustBuffer):
+    @staticmethod
+    def read(buf):
+        return SignalWorkflowResponse(
+            signal_event_sequence=_UniffiConverterInt64.read(buf),
+        )
+
+    @staticmethod
+    def check_lower(value):
+        _UniffiConverterInt64.check_lower(value.signal_event_sequence)
+
+    @staticmethod
+    def write(value, buf):
+        _UniffiConverterInt64.write(value.signal_event_sequence, buf)
 
 
 class StartWorkflowResponse:
@@ -5328,6 +5736,8 @@ class FfiEventType(enum.Enum):
     
     TIMER_CANCELLED = 23
     
+    SIGNAL_RECEIVED = 24
+    
 
 
 class _UniffiConverterTypeFfiEventType(_UniffiConverterRustBuffer):
@@ -5382,6 +5792,8 @@ class _UniffiConverterTypeFfiEventType(_UniffiConverterRustBuffer):
             return FfiEventType.TIMER_FIRED
         if variant == 24:
             return FfiEventType.TIMER_CANCELLED
+        if variant == 25:
+            return FfiEventType.SIGNAL_RECEIVED
         raise InternalError("Raw enum value doesn't match any cases")
 
     @staticmethod
@@ -5433,6 +5845,8 @@ class _UniffiConverterTypeFfiEventType(_UniffiConverterRustBuffer):
         if value == FfiEventType.TIMER_FIRED:
             return
         if value == FfiEventType.TIMER_CANCELLED:
+            return
+        if value == FfiEventType.SIGNAL_RECEIVED:
             return
         raise ValueError(value)
 
@@ -5486,6 +5900,8 @@ class _UniffiConverterTypeFfiEventType(_UniffiConverterRustBuffer):
             buf.write_i32(23)
         if value == FfiEventType.TIMER_CANCELLED:
             buf.write_i32(24)
+        if value == FfiEventType.SIGNAL_RECEIVED:
+            buf.write_i32(25)
 
 
 
@@ -5780,6 +6196,122 @@ class _UniffiConverterTypeFfiPromiseResult(_UniffiConverterRustBuffer):
         if value.is_pending():
             buf.write_i32(4)
             _UniffiConverterString.write(value.promise_id, buf)
+
+
+
+
+
+
+
+class FfiSignalResult:
+    """
+    Result of waiting for a signal.
+    """
+
+    def __init__(self):
+        raise RuntimeError("FfiSignalResult cannot be instantiated directly")
+
+    # Each enum variant is a nested class of the enum itself.
+    class RECEIVED:
+        """
+        Signal received - return the signal data.
+        """
+
+        signal_name: "str"
+        """
+        Signal name.
+        """
+
+        value: "bytes"
+        """
+        Serialized value as JSON bytes.
+        """
+
+
+        def __init__(self,signal_name: "str", value: "bytes"):
+            self.signal_name = signal_name
+            self.value = value
+
+        def __str__(self):
+            return "FfiSignalResult.RECEIVED(signal_name={}, value={})".format(self.signal_name, self.value)
+
+        def __eq__(self, other):
+            if not other.is_received():
+                return False
+            if self.signal_name != other.signal_name:
+                return False
+            if self.value != other.value:
+                return False
+            return True
+    
+    class PENDING:
+        """
+        No signal available - workflow should suspend.
+        """
+
+
+        def __init__(self,):
+            pass
+
+        def __str__(self):
+            return "FfiSignalResult.PENDING()".format()
+
+        def __eq__(self, other):
+            if not other.is_pending():
+                return False
+            return True
+    
+    
+
+    # For each variant, we have an `is_NAME` method for easily checking
+    # whether an instance is that variant.
+    def is_received(self) -> bool:
+        return isinstance(self, FfiSignalResult.RECEIVED)
+    def is_pending(self) -> bool:
+        return isinstance(self, FfiSignalResult.PENDING)
+    
+
+# Now, a little trick - we make each nested variant class be a subclass of the main
+# enum class, so that method calls and instance checks etc will work intuitively.
+# We might be able to do this a little more neatly with a metaclass, but this'll do.
+FfiSignalResult.RECEIVED = type("FfiSignalResult.RECEIVED", (FfiSignalResult.RECEIVED, FfiSignalResult,), {})  # type: ignore
+FfiSignalResult.PENDING = type("FfiSignalResult.PENDING", (FfiSignalResult.PENDING, FfiSignalResult,), {})  # type: ignore
+
+
+
+
+class _UniffiConverterTypeFfiSignalResult(_UniffiConverterRustBuffer):
+    @staticmethod
+    def read(buf):
+        variant = buf.read_i32()
+        if variant == 1:
+            return FfiSignalResult.RECEIVED(
+                _UniffiConverterString.read(buf),
+                _UniffiConverterBytes.read(buf),
+            )
+        if variant == 2:
+            return FfiSignalResult.PENDING(
+            )
+        raise InternalError("Raw enum value doesn't match any cases")
+
+    @staticmethod
+    def check_lower(value):
+        if value.is_received():
+            _UniffiConverterString.check_lower(value.signal_name)
+            _UniffiConverterBytes.check_lower(value.value)
+            return
+        if value.is_pending():
+            return
+        raise ValueError(value)
+
+    @staticmethod
+    def write(value, buf):
+        if value.is_received():
+            buf.write_i32(1)
+            _UniffiConverterString.write(value.signal_name, buf)
+            _UniffiConverterBytes.write(value.value, buf)
+        if value.is_pending():
+            buf.write_i32(2)
 
 
 
@@ -8920,6 +9452,31 @@ class _UniffiConverterSequenceString(_UniffiConverterRustBuffer):
 
 
 
+class _UniffiConverterSequenceTypeFfiSignalEvent(_UniffiConverterRustBuffer):
+    @classmethod
+    def check_lower(cls, value):
+        for item in value:
+            _UniffiConverterTypeFfiSignalEvent.check_lower(item)
+
+    @classmethod
+    def write(cls, value, buf):
+        items = len(value)
+        buf.write_i32(items)
+        for item in value:
+            _UniffiConverterTypeFfiSignalEvent.write(item, buf)
+
+    @classmethod
+    def read(cls, buf):
+        count = buf.read_i32()
+        if count < 0:
+            raise InternalError("Unexpected negative sequence length")
+
+        return [
+            _UniffiConverterTypeFfiSignalEvent.read(buf) for i in range(count)
+        ]
+
+
+
 class _UniffiConverterSequenceTypeLifecycleEvent(_UniffiConverterRustBuffer):
     @classmethod
     def check_lower(cls, value):
@@ -9077,6 +9634,7 @@ __all__ = [
     "FfiEventType",
     "FfiOperationResult",
     "FfiPromiseResult",
+    "FfiSignalResult",
     "FfiStopReason",
     "FfiStreamEvent",
     "FfiTaskExecutionResult",
@@ -9091,8 +9649,11 @@ __all__ = [
     "FfiConnectionInfo",
     "FfiRegistrationInfo",
     "FfiReplayEvent",
+    "FfiSignalEvent",
     "LifecycleEvent",
     "OAuth2Credentials",
+    "SignalWithStartResponse",
+    "SignalWorkflowResponse",
     "StartWorkflowResponse",
     "StateEntry",
     "TaskActivation",
