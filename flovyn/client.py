@@ -508,8 +508,15 @@ class FlovynClient:
                 await asyncio.sleep(0.5)
 
         async def send_signal(signal_name: str, payload: Any) -> None:
-            # Signal sending would go through the core client
-            pass
+            # Signal sending through the core client
+            if self._core_client is None:
+                raise RuntimeError("Client not initialized")
+            value_bytes = self._serializer.serialize(payload)
+            self._core_client.signal_workflow(
+                workflow_execution_id=workflow_execution_id,
+                signal_name=signal_name,
+                signal_value=value_bytes,
+            )
 
         async def execute_query(query_name: str, args: Any) -> Any:
             result_bytes = self._core_client.query_workflow(
@@ -608,6 +615,96 @@ class FlovynClient:
         promise_id = self._get_promise_id(workflow_id, promise_name)
 
         self._core_client.reject_promise(promise_id=promise_id, error=error)
+
+    async def signal_workflow(
+        self,
+        workflow_execution_id: str,
+        signal_name: str,
+        value: Any,
+    ) -> int:
+        """Send a signal to an existing workflow.
+
+        Args:
+            workflow_execution_id: The workflow execution ID.
+            signal_name: The name of the signal.
+            value: The signal payload.
+
+        Returns:
+            The sequence number of the signal event.
+        """
+        if self._core_client is None:
+            await self._initialize_core()
+
+        value_bytes = self._serializer.serialize(value)
+        response = self._core_client.signal_workflow(
+            workflow_execution_id=workflow_execution_id,
+            signal_name=signal_name,
+            signal_value=value_bytes,
+        )
+        return response.signal_event_sequence
+
+    async def signal_with_start_workflow(
+        self,
+        workflow: str | type[Any] | Callable[..., Any],
+        workflow_id: str,
+        input: Any,
+        signal_name: str,
+        signal_value: Any,
+        *,
+        queue: str | None = None,
+    ) -> WorkflowHandle[Any]:
+        """Send a signal to an existing workflow, or create a new workflow and send the signal.
+
+        This is an atomic operation - either the workflow exists and receives the signal,
+        or a new workflow is created with the signal. This prevents race conditions
+        where a workflow might be created between checking for existence and signaling.
+
+        Supports both string-based (distributed) and typed (single-server) APIs:
+        - String-based: signal_with_start_workflow("order-workflow", "order-123", {"field": "value"}, "signal", payload)
+        - Typed: signal_with_start_workflow(OrderWorkflow, "order-123", OrderInput(field="value"), "signal", payload)
+
+        Args:
+            workflow: The workflow kind (string) or workflow class/function.
+            workflow_id: The workflow ID (used as idempotency key).
+            input: The workflow input (dict or Pydantic model).
+            signal_name: The name of the signal.
+            signal_value: The signal payload.
+            queue: Optional queue override.
+
+        Returns:
+            A handle to the workflow.
+        """
+        from flovyn.workflow import get_workflow_kind, is_workflow
+
+        if self._core_client is None:
+            await self._initialize_core()
+
+        # Determine workflow kind from string or class
+        if isinstance(workflow, str):
+            workflow_kind = workflow
+        elif is_workflow(workflow):
+            workflow_kind = get_workflow_kind(workflow)
+        else:
+            raise ValueError(
+                f"workflow must be a string kind or a @workflow decorated class/function, got {type(workflow)}"
+            )
+
+        input_bytes = self._serializer.serialize(input)
+        signal_bytes = self._serializer.serialize(signal_value)
+
+        response = self._core_client.signal_with_start_workflow(
+            workflow_id=workflow_id,
+            workflow_kind=workflow_kind,
+            workflow_input=input_bytes,
+            queue=queue or self._queue,
+            signal_name=signal_name,
+            signal_value=signal_bytes,
+        )
+
+        return self._create_workflow_handle(
+            workflow_id=workflow_id,
+            workflow_execution_id=response.workflow_execution_id,
+        )
 
     @property
     def worker_status(self) -> str | None:

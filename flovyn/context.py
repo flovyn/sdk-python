@@ -368,20 +368,60 @@ class WorkflowContext(ABC):
     @abstractmethod
     async def wait_for_signal(
         self,
-        name: str,
+        name: str | None = None,
         *,
         timeout: timedelta | None = None,
         type_hint: type[T] = Any,  # type: ignore[assignment]
     ) -> T:
-        """Wait for an external signal.
+        """Wait for the next signal in the queue.
+
+        Signals are consumed in order. If no signal is available, the workflow
+        will suspend until a signal is received.
 
         Args:
-            name: The signal name.
+            name: Optional signal name (currently ignored - reserved for future use).
             timeout: Optional timeout for waiting.
             type_hint: Type hint for the signal payload.
 
         Returns:
             The signal payload.
+        """
+        ...
+
+    @abstractmethod
+    def has_signal(self) -> bool:
+        """Check if any signals are pending in the queue.
+
+        This does not consume any signals.
+
+        Returns:
+            True if there are signals waiting to be processed.
+        """
+        ...
+
+    @abstractmethod
+    def pending_signal_count(self) -> int:
+        """Get the number of pending signals.
+
+        Returns:
+            The count of signals waiting to be processed.
+        """
+        ...
+
+    @abstractmethod
+    def drain_signals(
+        self,
+        type_hint: type[T] = Any,  # type: ignore[assignment]
+    ) -> list[T]:
+        """Drain all pending signals from the queue.
+
+        This consumes all signals currently in the queue and returns them.
+
+        Args:
+            type_hint: Type hint for the signal payload.
+
+        Returns:
+            A list of signal payloads.
         """
         ...
 
@@ -944,14 +984,72 @@ class WorkflowContextImpl(WorkflowContext):
 
     async def wait_for_signal(
         self,
-        name: str,
+        name: str | None = None,
         *,
         timeout: timedelta | None = None,
         type_hint: type[T] = Any,  # type: ignore[assignment]
     ) -> T:
-        # Signals are handled through the activation job mechanism
-        # For now, this is a placeholder that will be implemented via promise
-        return await self.promise(name, timeout=timeout, type_hint=type_hint)
+        """Wait for the next signal in the queue.
+
+        Signals are consumed in order. If no signal is available, the workflow
+        will suspend until a signal is received.
+
+        Note: The `name` parameter is currently ignored - signals are returned
+        in the order they were received. Future versions may support filtering
+        by name.
+
+        Args:
+            name: Optional signal name (currently ignored - reserved for future use).
+            timeout: Optional timeout for waiting (currently not implemented).
+            type_hint: Type hint for the signal payload.
+
+        Returns:
+            The signal payload deserialized to the specified type.
+
+        Raises:
+            WorkflowSuspended: If no signal is available (workflow will be resumed
+                when a signal arrives).
+        """
+        result = self._ffi.wait_for_signal()
+
+        ffi = _get_ffi_module()
+
+        if isinstance(result, ffi.FfiSignalResult.RECEIVED):
+            # Signal received - deserialize the value
+            return self._serializer.deserialize(bytes(result.value), type_hint)  # type: ignore[no-any-return]
+        elif isinstance(result, ffi.FfiSignalResult.PENDING):
+            # No signal available - suspend workflow
+            raise WorkflowSuspended("Waiting for signal")
+        else:
+            raise RuntimeError(f"Unknown signal result type: {type(result)}")
+
+    def has_signal(self) -> bool:
+        """Check if any signals are pending in the queue."""
+        return bool(self._ffi.has_signal())
+
+    def pending_signal_count(self) -> int:
+        """Get the number of pending signals."""
+        return int(self._ffi.pending_signal_count())
+
+    def drain_signals(
+        self,
+        type_hint: type[T] = Any,  # type: ignore[assignment]
+    ) -> list[T]:
+        """Drain all pending signals from the queue.
+
+        This consumes all signals currently in the queue and returns them.
+
+        Args:
+            type_hint: Type hint for the signal payload.
+
+        Returns:
+            A list of signal payloads.
+        """
+        ffi_signals = self._ffi.drain_signals()
+        return [
+            self._serializer.deserialize(bytes(sig.value), type_hint)
+            for sig in ffi_signals
+        ]
 
     async def get(
         self,

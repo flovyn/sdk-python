@@ -301,6 +301,65 @@ class FlovynTestEnvironment:
             error=error,
         )
 
+    async def signal_workflow(
+        self,
+        handle: WorkflowHandle[Any],
+        signal_name: str,
+        value: Any,
+    ) -> int:
+        """Send a signal to a running workflow.
+
+        Args:
+            handle: The workflow handle.
+            signal_name: The name of the signal.
+            value: The signal payload.
+
+        Returns:
+            The sequence number of the signal event.
+        """
+        if not self._started or self._client is None:
+            raise RuntimeError("Test environment not started. Call start() first.")
+
+        return await self._client.signal_workflow(
+            workflow_execution_id=handle.workflow_execution_id,
+            signal_name=signal_name,
+            value=value,
+        )
+
+    async def signal_with_start_workflow(
+        self,
+        workflow: str | type[Any],
+        workflow_id: str,
+        input: Any,
+        signal_name: str,
+        signal_value: Any,
+    ) -> WorkflowHandle[Any]:
+        """Send a signal to an existing workflow, or create a new workflow and send the signal.
+
+        This is an atomic operation - either the workflow exists and receives the signal,
+        or a new workflow is created with the signal.
+
+        Args:
+            workflow: The workflow kind (string) or workflow class.
+            workflow_id: The workflow ID (used as idempotency key).
+            input: The workflow input.
+            signal_name: The name of the signal.
+            signal_value: The signal payload.
+
+        Returns:
+            A handle to the workflow.
+        """
+        if not self._started or self._client is None:
+            raise RuntimeError("Test environment not started. Call start() first.")
+
+        return await self._client.signal_with_start_workflow(
+            workflow=workflow,
+            workflow_id=workflow_id,
+            input=input,
+            signal_name=signal_name,
+            signal_value=signal_value,
+        )
+
     @property
     def client(self) -> FlovynClient | None:
         """Get the underlying FlovynClient."""
