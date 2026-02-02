@@ -1054,10 +1054,7 @@ class WorkflowContextImpl(WorkflowContext):
             A list of signal payloads.
         """
         ffi_signals = self._ffi.drain_signals(name)
-        return [
-            self._serializer.deserialize(bytes(sig.value), type_hint)
-            for sig in ffi_signals
-        ]
+        return [self._serializer.deserialize(bytes(sig.value), type_hint) for sig in ffi_signals]
 
     async def get(
         self,
