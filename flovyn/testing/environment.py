@@ -660,9 +660,7 @@ class TestHarness:
         logger.info(f"Created config file at {config_path}")
 
         # Start Flovyn server
-        server_image = os.environ.get(
-            "FLOVYN_SERVER_IMAGE", "rg.fr-par.scw.cloud/flovyn/flovyn-server:latest"
-        )
+        server_image = "rg.fr-par.scw.cloud/flovyn/flovyn-server:latest"
 
         self._server_container = DockerContainer(server_image)
         self._server_container.with_exposed_ports(8000, 9090)

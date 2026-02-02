@@ -556,15 +556,15 @@ def _uniffi_check_api_checksums(lib):
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_current_time_millis() != 38125:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_drain_signals() != 26519:
+    if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_drain_signals() != 12306:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_get_state() != 9129:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_has_signal() != 27653:
+    if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_has_signal() != 65034:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_is_cancellation_requested() != 18572:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_pending_signal_count() != 13337:
+    if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_pending_signal_count() != 57526:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_random() != 22015:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
@@ -588,7 +588,7 @@ def _uniffi_check_api_checksums(lib):
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_take_commands() != 63915:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_wait_for_signal() != 4847:
+    if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_wait_for_signal() != 7519:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_flovyn_worker_ffi_checksum_method_ffiworkflowcontext_workflow_execution_id() != 54462:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
@@ -1030,6 +1030,7 @@ _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_current_time_mi
 _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_current_time_millis.restype = ctypes.c_int64
 _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_drain_signals.argtypes = (
     ctypes.c_void_p,
+    _UniffiRustBuffer,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
 _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_drain_signals.restype = _UniffiRustBuffer
@@ -1041,6 +1042,7 @@ _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_get_state.argty
 _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_get_state.restype = _UniffiRustBuffer
 _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_has_signal.argtypes = (
     ctypes.c_void_p,
+    _UniffiRustBuffer,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
 _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_has_signal.restype = ctypes.c_int8
@@ -1051,6 +1053,7 @@ _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_is_cancellation
 _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_is_cancellation_requested.restype = ctypes.c_int8
 _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_pending_signal_count.argtypes = (
     ctypes.c_void_p,
+    _UniffiRustBuffer,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
 _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_pending_signal_count.restype = ctypes.c_uint32
@@ -1126,6 +1129,7 @@ _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_take_commands.a
 _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_take_commands.restype = _UniffiRustBuffer
 _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_wait_for_signal.argtypes = (
     ctypes.c_void_p,
+    _UniffiRustBuffer,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
 _UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_wait_for_signal.restype = _UniffiRustBuffer
@@ -3201,9 +3205,9 @@ class FfiWorkflowContextProtocol(typing.Protocol):
         """
 
         raise NotImplementedError
-    def drain_signals(self, ):
+    def drain_signals(self, signal_name: "str"):
         """
-        Drain all pending signals from the queue.
+        Drain all pending signals with the specified name.
         """
 
         raise NotImplementedError
@@ -3213,9 +3217,9 @@ class FfiWorkflowContextProtocol(typing.Protocol):
         """
 
         raise NotImplementedError
-    def has_signal(self, ):
+    def has_signal(self, signal_name: "str"):
         """
-        Check if any signals are pending in the queue.
+        Check if any signals with the specified name are pending.
         """
 
         raise NotImplementedError
@@ -3225,9 +3229,9 @@ class FfiWorkflowContextProtocol(typing.Protocol):
         """
 
         raise NotImplementedError
-    def pending_signal_count(self, ):
+    def pending_signal_count(self, signal_name: "str"):
         """
-        Get the number of pending signals.
+        Get the number of pending signals with the specified name.
         """
 
         raise NotImplementedError
@@ -3319,13 +3323,15 @@ class FfiWorkflowContextProtocol(typing.Protocol):
         """
 
         raise NotImplementedError
-    def wait_for_signal(self, ):
+    def wait_for_signal(self, signal_name: "str"):
         """
-        Wait for the next signal in the queue.
+        Wait for the next signal with the specified name.
+
+        Each signal name has its own FIFO queue.
 
         Returns:
-        - `Received` if a signal is available
-        - `Pending` if no signal available - workflow should suspend
+        - `Received` if a signal with the given name is available
+        - `Pending` if no signal with that name available - workflow should suspend
         """
 
         raise NotImplementedError
@@ -3454,13 +3460,16 @@ class FfiWorkflowContext:
 
 
 
-    def drain_signals(self, ) -> "typing.List[FfiSignalEvent]":
+    def drain_signals(self, signal_name: "str") -> "typing.List[FfiSignalEvent]":
         """
-        Drain all pending signals from the queue.
+        Drain all pending signals with the specified name.
         """
 
+        _UniffiConverterString.check_lower(signal_name)
+        
         return _UniffiConverterSequenceTypeFfiSignalEvent.lift(
-            _uniffi_rust_call(_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_drain_signals,self._uniffi_clone_pointer(),)
+            _uniffi_rust_call(_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_drain_signals,self._uniffi_clone_pointer(),
+        _UniffiConverterString.lower(signal_name))
         )
 
 
@@ -3483,13 +3492,16 @@ class FfiWorkflowContext:
 
 
 
-    def has_signal(self, ) -> "bool":
+    def has_signal(self, signal_name: "str") -> "bool":
         """
-        Check if any signals are pending in the queue.
+        Check if any signals with the specified name are pending.
         """
 
+        _UniffiConverterString.check_lower(signal_name)
+        
         return _UniffiConverterBool.lift(
-            _uniffi_rust_call(_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_has_signal,self._uniffi_clone_pointer(),)
+            _uniffi_rust_call(_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_has_signal,self._uniffi_clone_pointer(),
+        _UniffiConverterString.lower(signal_name))
         )
 
 
@@ -3509,13 +3521,16 @@ class FfiWorkflowContext:
 
 
 
-    def pending_signal_count(self, ) -> "int":
+    def pending_signal_count(self, signal_name: "str") -> "int":
         """
-        Get the number of pending signals.
+        Get the number of pending signals with the specified name.
         """
 
+        _UniffiConverterString.check_lower(signal_name)
+        
         return _UniffiConverterUInt32.lift(
-            _uniffi_rust_call(_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_pending_signal_count,self._uniffi_clone_pointer(),)
+            _uniffi_rust_call(_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_pending_signal_count,self._uniffi_clone_pointer(),
+        _UniffiConverterString.lower(signal_name))
         )
 
 
@@ -3729,17 +3744,22 @@ class FfiWorkflowContext:
 
 
 
-    def wait_for_signal(self, ) -> "FfiSignalResult":
+    def wait_for_signal(self, signal_name: "str") -> "FfiSignalResult":
         """
-        Wait for the next signal in the queue.
+        Wait for the next signal with the specified name.
+
+        Each signal name has its own FIFO queue.
 
         Returns:
-        - `Received` if a signal is available
-        - `Pending` if no signal available - workflow should suspend
+        - `Received` if a signal with the given name is available
+        - `Pending` if no signal with that name available - workflow should suspend
         """
 
+        _UniffiConverterString.check_lower(signal_name)
+        
         return _UniffiConverterTypeFfiSignalResult.lift(
-            _uniffi_rust_call(_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_wait_for_signal,self._uniffi_clone_pointer(),)
+            _uniffi_rust_call(_UniffiLib.uniffi_flovyn_worker_ffi_fn_method_ffiworkflowcontext_wait_for_signal,self._uniffi_clone_pointer(),
+        _UniffiConverterString.lower(signal_name))
         )
 
 

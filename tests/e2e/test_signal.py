@@ -28,10 +28,10 @@ async def test_signal_workflow(env: FlovynTestEnvironment) -> None:
     # Wait for workflow to suspend and start waiting for signals
     await asyncio.sleep(2.0)
 
-    # Send signal externally
+    # Send signal externally (must use 'signal' name that workflow expects)
     await env.signal_workflow(
         handle,
-        "user-action",
+        "signal",
         {"action": "approve", "user": "admin@example.com"},
     )
 
@@ -63,10 +63,10 @@ async def test_multiple_signals(env: FlovynTestEnvironment) -> None:
     # Wait for workflow to start
     await asyncio.sleep(2.0)
 
-    # Send 3 signals
-    await env.signal_workflow(handle, "signal-1", {"order": 1})
-    await env.signal_workflow(handle, "signal-2", {"order": 2})
-    await env.signal_workflow(handle, "signal-3", {"order": 3})
+    # Send 3 signals (must use 'message' name that workflow expects)
+    await env.signal_workflow(handle, "message", {"order": 1})
+    await env.signal_workflow(handle, "message", {"order": 2})
+    await env.signal_workflow(handle, "message", {"order": 3})
 
     # Wait for workflow to complete
     result = await env.await_completion(handle, timeout=timedelta(seconds=30))
@@ -92,12 +92,12 @@ async def test_signal_with_start_new_workflow(env: FlovynTestEnvironment) -> Non
 
     workflow_id = f"signal-with-start-{uuid.uuid4().hex[:8]}"
 
-    # Use signal_with_start to create workflow with signal
+    # Use signal_with_start to create workflow with signal (must use 'signal' name)
     handle = await env.signal_with_start_workflow(
         "signal-workflow",
         workflow_id,
         {},  # Empty input
-        "init-signal",
+        "signal",
         {"data": "from signal_with_start"},
     )
 
@@ -135,16 +135,17 @@ async def test_signal_with_start_existing_workflow(env: FlovynTestEnvironment) -
     await asyncio.sleep(2.0)
 
     # Use signal_with_start on the same workflow ID - should only send signal
+    # Must use 'message' signal name that multi-signal-workflow expects
     await env.signal_with_start_workflow(
         "multi-signal-workflow",
         workflow_id,
         {"expected_count": 2},  # Would be different if workflow was recreated
-        "signal-via-sws",
+        "message",
         {"source": "signal_with_start"},
     )
 
-    # Send second signal to complete
-    await env.signal_workflow(handle, "second-signal", {"source": "direct"})
+    # Send second signal to complete (must use 'message' name)
+    await env.signal_workflow(handle, "message", {"source": "direct"})
 
     # Wait for workflow to complete
     result = await env.await_completion(handle, timeout=timedelta(seconds=30))

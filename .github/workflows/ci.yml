@@ -79,5 +79,3 @@ jobs:
 
       - name: Run E2E tests
         run: uv run pytest tests/e2e -v --tb=short -m e2e
-        env:
-          FLOVYN_SERVER_IMAGE: rg.fr-par.scw.cloud/flovyn/flovyn-server:latest

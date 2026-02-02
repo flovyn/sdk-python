@@ -760,8 +760,8 @@ class SignalWorkflow:
     """
 
     async def run(self, ctx: WorkflowContext, input: SignalInput) -> SignalOutput:
-        # Wait for a single signal
-        signal_value = await ctx.wait_for_signal()
+        # Wait for a single signal with the well-known name 'signal'
+        signal_value = await ctx.wait_for_signal("signal")
 
         return SignalOutput(
             received_signals=[signal_value],
@@ -789,8 +789,8 @@ class MultiSignalWorkflow:
         received = []
 
         for _ in range(input.expected_count):
-            # Wait for each signal
-            signal_value = await ctx.wait_for_signal()
+            # Wait for each signal with the well-known name 'message'
+            signal_value = await ctx.wait_for_signal("message")
             received.append(signal_value)
 
         return MultiSignalOutput(

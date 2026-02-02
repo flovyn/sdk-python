@@ -277,7 +277,8 @@ class MockWorkflowContext(WorkflowContext):
         self._workflow_failures: dict[str, Exception] = {}
         self._promise_values: dict[str, Any] = {}
         self._promise_rejections: dict[str, str] = {}
-        self._signal_queue: list[tuple[str, Any]] = []  # Queue of (name, value) tuples
+        # Per-name signal queues: dict[signal_name, list[value]]
+        self._signal_queues: dict[str, list[Any]] = {}
         self._run_results: dict[str, Any] = {}
         self._cancellation_requested = False
         self._logger = logging.getLogger(f"flovyn.test.workflow.{self._workflow_execution_id}")
@@ -468,18 +469,18 @@ class MockWorkflowContext(WorkflowContext):
 
     async def wait_for_signal(
         self,
-        name: str | None = None,
+        name: str,
         *,
         timeout: timedelta | None = None,
         type_hint: type[T] = Any,  # type: ignore[assignment]
     ) -> T:
-        """Wait for the next signal in the queue.
+        """Wait for the next signal with the specified name.
 
         In mock context, this returns the next signal from the queue
-        (or raises if queue is empty).
+        for the given name (or raises if queue is empty).
 
         Args:
-            name: Optional signal name (currently ignored).
+            name: The signal name to wait for.
             timeout: Optional timeout (ignored in mock).
             type_hint: Type hint for the signal payload.
 
@@ -487,33 +488,38 @@ class MockWorkflowContext(WorkflowContext):
             The signal payload.
 
         Raises:
-            TimeoutError: If no signals are in the queue.
+            TimeoutError: If no signals with that name are in the queue.
         """
-        if self._signal_queue:
-            _, value = self._signal_queue.pop(0)
-            return value  # type: ignore[no-any-return]
+        if name in self._signal_queues and self._signal_queues[name]:
+            return self._signal_queues[name].pop(0)  # type: ignore[no-any-return]
 
-        raise TimeoutError("No signals in queue (mock)")
+        raise TimeoutError(f"No signals with name '{name}' in queue (mock)")
 
-    def has_signal(self) -> bool:
-        """Check if any signals are pending in the queue."""
-        return len(self._signal_queue) > 0
+    def has_signal(self, name: str) -> bool:
+        """Check if any signals with the specified name are pending."""
+        return name in self._signal_queues and len(self._signal_queues[name]) > 0
 
-    def pending_signal_count(self) -> int:
-        """Get the number of pending signals."""
-        return len(self._signal_queue)
+    def pending_signal_count(self, name: str) -> int:
+        """Get the number of pending signals with the specified name."""
+        return len(self._signal_queues.get(name, []))
 
     def drain_signals(
         self,
+        name: str,
         type_hint: type[T] = Any,  # type: ignore[assignment]
     ) -> list[T]:
-        """Drain all pending signals from the queue.
+        """Drain all pending signals with the specified name.
+
+        Args:
+            name: The signal name to drain.
 
         Returns:
             A list of signal payloads.
         """
-        values = [value for _, value in self._signal_queue]
-        self._signal_queue.clear()
+        if name not in self._signal_queues:
+            return []
+        values = self._signal_queues[name]
+        self._signal_queues[name] = []
         return values  # type: ignore[return-value]
 
     async def get(
@@ -666,16 +672,18 @@ class MockWorkflowContext(WorkflowContext):
         self._promise_rejections[name] = error
 
     def mock_signal_value(self, name: str, value: Any) -> None:
-        """Add a signal to the signal queue.
+        """Add a signal to the signal queue for a specific name.
 
-        Signals are consumed in order by wait_for_signal().
-        Call multiple times to queue multiple signals.
+        Signals with the same name are consumed in FIFO order by
+        wait_for_signal(name). Call multiple times to queue multiple signals.
 
         Args:
             name: The signal name.
             value: The signal payload.
         """
-        self._signal_queue.append((name, value))
+        if name not in self._signal_queues:
+            self._signal_queues[name] = []
+        self._signal_queues[name].append(value)
 
     def mock_run_result(self, name: str, result: Any) -> None:
         """Configure a ctx.run() operation to return the given result.
