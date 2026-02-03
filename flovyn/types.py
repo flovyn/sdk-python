@@ -37,6 +37,7 @@ class StreamEvent:
     data: Any
     timestamp: int
 
+
 # Type variables for generics
 InputT = TypeVar("InputT", contravariant=True)
 OutputT = TypeVar("OutputT", covariant=True)

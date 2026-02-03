@@ -738,6 +738,99 @@ class TypedTaskOutput(BaseModel):
     result: int
 
 
+# ============================================================================
+# Signal Workflows
+# ============================================================================
+
+
+class SignalInput(BaseModel):
+    pass
+
+
+class SignalOutput(BaseModel):
+    received_signals: list[Any]
+    signal_count: int
+
+
+@workflow(name="signal-workflow")
+class SignalWorkflow:
+    """Workflow that waits for a signal and returns the value.
+
+    Used for testing signal functionality.
+    """
+
+    async def run(self, ctx: WorkflowContext, input: SignalInput) -> SignalOutput:
+        # Wait for a single signal with the well-known name 'signal'
+        signal_value = await ctx.wait_for_signal("signal")
+
+        return SignalOutput(
+            received_signals=[signal_value],
+            signal_count=1,
+        )
+
+
+class MultiSignalInput(BaseModel):
+    expected_count: int
+
+
+class MultiSignalOutput(BaseModel):
+    received_signals: list[Any]
+    signal_count: int
+
+
+@workflow(name="multi-signal-workflow")
+class MultiSignalWorkflow:
+    """Workflow that waits for multiple signals.
+
+    Used for testing multiple signal delivery and ordering.
+    """
+
+    async def run(self, ctx: WorkflowContext, input: MultiSignalInput) -> MultiSignalOutput:
+        received = []
+
+        for _ in range(input.expected_count):
+            # Wait for each signal with the well-known name 'message'
+            signal_value = await ctx.wait_for_signal("message")
+            received.append(signal_value)
+
+        return MultiSignalOutput(
+            received_signals=received,
+            signal_count=len(received),
+        )
+
+
+class DrainSignalsInput(BaseModel):
+    pass
+
+
+class DrainSignalsOutput(BaseModel):
+    had_signals: bool
+    signal_count: int
+    drained_values: list[Any]
+
+
+@workflow(name="drain-signals-workflow")
+class DrainSignalsWorkflow:
+    """Workflow that drains all signals from the queue.
+
+    Used for testing has_signal() and drain_signals() APIs.
+    """
+
+    async def run(self, ctx: WorkflowContext, input: DrainSignalsInput) -> DrainSignalsOutput:
+        # Check if signals are available
+        had_signals = ctx.has_signal()
+        count = ctx.pending_signal_count()
+
+        # Drain all signals
+        values = ctx.drain_signals()
+
+        return DrainSignalsOutput(
+            had_signals=had_signals,
+            signal_count=count,
+            drained_values=values,
+        )
+
+
 @workflow(name="typed-task-workflow")
 class TypedTaskWorkflow:
     """Workflow that uses the typed API to execute a task.
