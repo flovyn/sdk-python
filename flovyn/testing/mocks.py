@@ -520,7 +520,7 @@ class MockWorkflowContext(WorkflowContext):
             return []
         values = self._signal_queues[name]
         self._signal_queues[name] = []
-        return values  # type: ignore[return-value]
+        return values
 
     async def get(
         self,

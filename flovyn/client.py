@@ -641,7 +641,7 @@ class FlovynClient:
             signal_name=signal_name,
             signal_value=value_bytes,
         )
-        return response.signal_event_sequence
+        return int(response.signal_event_sequence)
 
     async def signal_with_start_workflow(
         self,
