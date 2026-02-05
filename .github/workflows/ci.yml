@@ -44,38 +44,36 @@ jobs:
       - name: Run unit tests
         run: uv run pytest tests/unit -v --tb=short
 
-  e2e-test:
+  # E2E tests moved to workspace CI (dev repo)
+
+  trigger-workspace:
+    name: Trigger Workspace CI
     runs-on: ubuntu-latest
-    needs: build
-    timeout-minutes: 30
-    continue-on-error: true # E2E tests can be flaky, don't block the workflow
-
+    needs: [build]
+    if: github.event_name == 'push' && github.ref_name != 'main'
     steps:
-      - uses: actions/checkout@v4
+      - name: Check for matching branches
+        id: check
+        run: |
+          BRANCH="${GITHUB_REF_NAME}"
+          MATCHING_REPOS=""
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+          for repo in flovyn-server sdk-rust sdk-kotlin sdk-typescript; do
+            if git ls-remote --exit-code --heads "https://github.com/flovyn/$repo" "$BRANCH" 2>/dev/null; then
+              MATCHING_REPOS="$MATCHING_REPOS $repo"
+            fi
+          done
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
+          if [ -n "$MATCHING_REPOS" ]; then
+            echo "trigger=true" >> $GITHUB_OUTPUT
+            echo "Found matching branches in:$MATCHING_REPOS"
+          else
+            echo "trigger=false" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Download native libraries from sdk-rust release
-        run: ./bin/download-ffi.sh ${{ env.FFI_VERSION }} linux-x86_64
-
-      - name: Install dependencies
-        run: uv sync --all-extras
-
-      - name: Login to Scaleway Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: rg.fr-par.scw.cloud/flovyn
-          username: nologin
-          password: ${{ secrets.SCW_SECRET_KEY }}
-
-      - name: Pull Flovyn Server image
-        run: docker pull rg.fr-par.scw.cloud/flovyn/flovyn-server:latest
-
-      - name: Run E2E tests
-        run: uv run pytest tests/e2e -v --tb=short -m e2e
+      - name: Trigger workspace CI
+        if: steps.check.outputs.trigger == 'true'
+        run: |
+          gh workflow run integration.yml -R flovyn/dev -f branch="${GITHUB_REF_NAME}"
+        env:
+          GH_TOKEN: ${{ secrets.WORKSPACE_PAT }}
