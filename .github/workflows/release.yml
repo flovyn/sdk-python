@@ -7,7 +7,7 @@ on:
 
 env:
   # Pin to specific sdk-rust release version (updated by dev/release.yml)
-  FFI_VERSION: v0.1.10
+  FFI_VERSION: v0.1.12
 
 jobs:
   release:
